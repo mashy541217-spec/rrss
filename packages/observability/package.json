@@ -1,0 +1,13 @@
+{
+  "name": "@rrss-auto/observability",
+  "version": "1.0.0",
+  "description": "Shared Observability SDK for RRSS AUTO – framework-agnostic tracing, metrics, and health abstractions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

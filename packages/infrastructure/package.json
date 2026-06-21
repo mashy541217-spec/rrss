@@ -1,0 +1,20 @@
+{
+  "name": "@rrss-auto/infrastructure",
+  "version": "1.0.0",
+  "description": "Shared Infrastructure Kernel for RRSS AUTO",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@rrss-auto/domain": "*",
+    "@rrss-auto/application": "*",
+    "@rrss-auto/logger": "*",
+    "@rrss-auto/configuration": "*",
+    "@rrss-auto/observability": "*"
+  }
+}

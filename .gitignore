@@ -1,0 +1,23 @@
+# Sistema operativo
+Thumbs.db
+.DS_Store
+
+# Entornos locales
+.env
+.env.*
+!.env.example
+
+# Dependencias y builds futuros
+node_modules/
+dist/
+build/
+coverage/
+
+# Artefactos temporales
+tmp/
+temp/
+logs/
+
+# IDEs
+.idea/
+.vscode/

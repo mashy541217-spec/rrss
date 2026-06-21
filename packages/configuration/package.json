@@ -1,0 +1,13 @@
+{
+  "name": "@rrss-auto/configuration",
+  "version": "1.0.0",
+  "description": "Shared Configuration SDK for RRSS AUTO – framework-agnostic configuration abstractions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

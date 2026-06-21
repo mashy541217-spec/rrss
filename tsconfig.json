@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["es2022"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "@rrss-auto/domain": ["packages/domain/src/index.ts"],
+      "@rrss-auto/application": ["packages/application/src/index.ts"],
+      "@rrss-auto/infrastructure": ["packages/infrastructure/src/index.ts"],
+      "@rrss-auto/testing": ["packages/testing/src/index.ts"],
+      "@rrss-auto/logger": ["packages/logger/src/index.ts"],
+      "@rrss-auto/configuration": ["packages/configuration/src/index.ts"],
+      "@rrss-auto/observability": ["packages/observability/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
