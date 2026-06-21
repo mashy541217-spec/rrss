@@ -3,6 +3,7 @@ export * from './identifier/index';
 export * from './events/index';
 export * from './workspace/index';
 export * from './identity/index';
+export * from './execution/index';
 export * from './builders/index';
 export * from './fixtures/index';
 export * from './fakes/index';
