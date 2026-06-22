@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// OUTBOX PATTERN FOUNDATION
+// ----------------------------------------------------------------------------
+// Used to reliably publish domain events from bounded contexts to the message broker.
+
+model OutboxMessage {
+  id            String   @id @default(uuid())
+  aggregateType String
+  aggregateId   String
+  eventType     String
+  payload       Json
+  status        String   @default("PENDING") // PENDING, PROCESSED, FAILED
+  error         String?
+  createdAt     DateTime @default(now())
+  processedAt   DateTime?
+
+  @@index([status, createdAt])
+}
+
+// Additional models will be added in upcoming sprints for each Bounded Context
