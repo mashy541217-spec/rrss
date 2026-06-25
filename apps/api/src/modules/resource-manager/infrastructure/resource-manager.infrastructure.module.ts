@@ -5,9 +5,11 @@ import { PrismaLeaseRepository } from './database/repositories/PrismaLeaseReposi
 import { CapacityManagerMapper } from './database/mappers/CapacityManagerMapper';
 import { ResourcePoolMapper } from './database/mappers/ResourcePoolMapper';
 import { LeaseMapper } from './database/mappers/LeaseMapper';
+import { PrismaService } from '../../../infrastructure/database/prisma/PrismaService';
 
 @Module({
   providers: [
+    PrismaService,
     PrismaResourceManagerRepository,
     PrismaResourcePoolRepository,
     PrismaLeaseRepository,

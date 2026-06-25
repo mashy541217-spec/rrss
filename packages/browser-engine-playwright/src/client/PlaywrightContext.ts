@@ -9,11 +9,16 @@ export class PlaywrightContext implements BrowserContext {
   constructor(
     private readonly pwContext: PWContext, 
     private readonly isMock = false,
-    private readonly stealthMode = false
+    private readonly stealthMode = false,
+    private readonly fingerprintOptions?: {
+      hardwareConcurrency?: number;
+      deviceMemory?: number;
+      platform?: string;
+    }
   ) {
     if (!isMock && stealthMode) {
       // Inject our standard stealth patterns dynamically
-      this.pwContext.addInitScript(StealthManager.getMaskingScript()).catch(console.error);
+      this.pwContext.addInitScript(StealthManager.getMaskingScript(fingerprintOptions)).catch(console.error);
     }
   }
 

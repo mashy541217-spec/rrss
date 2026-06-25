@@ -24,6 +24,7 @@ import { SlackModule } from './modules/slack/SlackModule';
 import { EnterpriseModule } from './modules/enterprise/EnterpriseModule';
 import { OrchestratorModule } from './modules/orchestrator/OrchestratorModule';
 import { WorkerModule } from './modules/worker/worker.module';
+import { IsolationModule } from './modules/isolation/IsolationModule';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { WorkerModule } from './modules/worker/worker.module';
     SlackModule,
     EnterpriseModule,
     WorkerModule,
+    IsolationModule,
   ],
   controllers: [],
   providers: [PrismaService],

@@ -18,9 +18,15 @@ export class PlaywrightInstance implements BrowserInstance {
       geolocation: options?.geolocation,
       locale: options?.locale,
       timezoneId: options?.timezoneId,
-      permissions: options?.permissions
+      permissions: options?.permissions,
+      proxy: options?.proxy,
+      deviceScaleFactor: options?.deviceScaleFactor
     });
-    return new PlaywrightContext(context, false, options?.stealthMode);
+    return new PlaywrightContext(context, false, options?.stealthMode, {
+      hardwareConcurrency: options?.hardwareConcurrency,
+      deviceMemory: options?.deviceMemory,
+      platform: options?.platform
+    });
   }
 
   async close(): Promise<void> {

@@ -9,6 +9,7 @@ import { ReadCredentialUseCase } from './application/use-cases/ReadCredential/Re
 import { PrismaCredentialRepository } from './infrastructure/database/repositories/PrismaCredentialRepository';
 import { LocalEncryptionService } from './infrastructure/encryption/LocalEncryptionService';
 import { PrismaService } from '../../infrastructure/database/prisma/PrismaService'; // Import PrismaService
+import { ProxyPoolManager } from './domain/services/ProxyPoolManager';
 
 const CommandHandlers = [
   CreateCredentialUseCase,
@@ -28,6 +29,7 @@ const QueryHandlers = [
     ...CommandHandlers,
     ...QueryHandlers,
     PrismaService, // Add PrismaService provider
+    ProxyPoolManager,
     {
       provide: 'ICredentialRepository',
       useClass: PrismaCredentialRepository
@@ -39,7 +41,8 @@ const QueryHandlers = [
   ],
   exports: [
     'ICredentialRepository',
-    'IEncryptionService'
+    'IEncryptionService',
+    ProxyPoolManager
   ]
 })
 export class CredentialModule {}

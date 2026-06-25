@@ -8,6 +8,11 @@ export interface BrowserContextOptions {
   timezoneId?: string;
   permissions?: string[];
   stealthMode?: boolean; // Generic humanization trigger
+  proxy?: { server: string; username?: string; password?: string };
+  deviceScaleFactor?: number;
+  hardwareConcurrency?: number;
+  deviceMemory?: number;
+  platform?: string;
 }
 
 export interface BrowserContext {

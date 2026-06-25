@@ -3,7 +3,11 @@ export class StealthManager {
    * Returns a vanilla javascript string that should be evaluated 
    * in the browser page upon creation (e.g., page.addInitScript).
    */
-  public static getMaskingScript(): string {
+  public static getMaskingScript(options?: {
+    hardwareConcurrency?: number;
+    deviceMemory?: number;
+    platform?: string;
+  }): string {
     return `
       // Mask webdriver
       Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
@@ -18,6 +22,11 @@ export class StealthManager {
           Promise.resolve({ state: Notification.permission } as PermissionStatus) :
           originalQuery(parameters)
       );
+
+      // Anti-detection fingerprint overrides
+      ${options?.hardwareConcurrency ? `Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => ${options.hardwareConcurrency} });` : ''}
+      ${options?.deviceMemory ? `Object.defineProperty(navigator, 'deviceMemory', { get: () => ${options.deviceMemory} });` : ''}
+      ${options?.platform ? `Object.defineProperty(navigator, 'platform', { get: () => '${options.platform}' });` : ''}
     `;
   }
 }

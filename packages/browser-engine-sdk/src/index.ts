@@ -2,6 +2,7 @@ export * from './execution/RetryEngine';
 export * from './execution/WaitingEngine';
 export * from './execution/ErrorMapper';
 export * from './humanization/StealthManager';
+export * from './humanization/FingerprintGenerator';
 export * from './humanization/HumanMovementEngine';
 export * from './humanization/TypingSimulator';
 export * from './pipelines/DownloadPipeline';
