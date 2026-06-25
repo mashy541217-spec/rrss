@@ -15,7 +15,7 @@ export const Shell: React.FC = () => {
     notifications, toggleTheme, setSidebarCollapsed, setActiveModule, 
     setSelectedOrg, setSelectedWorkspace, toggleCommandPalette, toggleAIAssistant,
     aiAssistantOpen, addNotification, clearNotification,
-    workers, workspaces, fetchWorkers, fetchWorkspaces
+    workers, workspaces, credentials, fetchWorkers, fetchWorkspaces, fetchCredentials, createCredential
   } = useUIStore();
 
   const [aiPrompt, setAiPrompt] = useState('');
@@ -23,18 +23,25 @@ export const Shell: React.FC = () => {
     { sender: 'assistant', text: 'Welcome to RRSS AUTO AI Operations. How can I help secure, deploy, or scale your infrastructure today?' }
   ]);
 
-  const [workersCount, setWorkersCount] = useState(12);
-
-  // Load workspaces and workers dynamically
+  // Load workspaces, workers, and credentials dynamically on mount
   useEffect(() => {
     fetchWorkspaces();
-  }, [fetchWorkspaces]);
+    fetchWorkers();
+    fetchCredentials();
+  }, [fetchWorkspaces, fetchWorkers, fetchCredentials]);
 
+  // Refresh lists dynamically on active tab changes
   useEffect(() => {
-    if (activeModule === 'workers') {
+    if (activeModule === 'dashboard' || activeModule === 'workers') {
       fetchWorkers();
     }
-  }, [activeModule, fetchWorkers]);
+    if (activeModule === 'dashboard' || activeModule === 'credentials') {
+      fetchCredentials();
+    }
+    if (activeModule === 'workspaces') {
+      fetchWorkspaces();
+    }
+  }, [activeModule, fetchWorkers, fetchCredentials, fetchWorkspaces]);
 
   const orgs = ['RRSS Global Inc.', 'North America Logistics', 'EMEA Retail Group'];
 
@@ -67,7 +74,7 @@ export const Shell: React.FC = () => {
     setAiPrompt('');
 
     setTimeout(() => {
-      let replyText = "I don't understand that command. Try asking 'Create 5 Windows Workers' or 'Scale Kubernetes Cluster'.";
+      let replyText = "I don't understand that command. Try asking 'Create 5 Windows Workers' or 'Register a Google Ads credential'.";
       let action = undefined;
 
       if (userMsg.toLowerCase().includes('windows') || userMsg.toLowerCase().includes('worker')) {
@@ -79,6 +86,9 @@ export const Shell: React.FC = () => {
       } else if (userMsg.toLowerCase().includes('telegram') || userMsg.toLowerCase().includes('install')) {
         replyText = "Cognitive engine parsed intent: INSTALL_PLUGIN. I will retrieve the verified @rrss-auto/plugin-telegram catalog signature. Approve installation:";
         action = { label: 'Install Telegram Plugin', actionKey: 'install_telegram' };
+      } else if (userMsg.toLowerCase().includes('credential') || userMsg.toLowerCase().includes('secret') || userMsg.toLowerCase().includes('key')) {
+        replyText = "Cognitive engine parsed intent: CREATE_CREDENTIAL. I have prepared the payload to register a secure Google Ads API credential in the vault. Approve registration:";
+        action = { label: 'Register Google Ads Key', actionKey: 'create_google_ads_key' };
       }
 
       setAiChatLog((prev) => [...prev, { sender: 'assistant', text: replyText, action }]);
@@ -87,32 +97,55 @@ export const Shell: React.FC = () => {
 
   const handleAiAction = (actionKey: string) => {
     if (actionKey === 'create_5_workers') {
-      setWorkersCount((prev) => prev + 5);
-      addNotification('Provisioning pipeline started: 5 Windows Workers.', 'success');
+      addNotification('AWS provisioning queue updated. Starting Windows Worker template scaling...', 'success');
     } else if (actionKey === 'scale_k8s') {
       addNotification('Kubernetes Node Group scaling command triggered.', 'info');
     } else if (actionKey === 'install_telegram') {
       addNotification('Plugin @rrss-auto/plugin-telegram deployed successfully.', 'success');
+    } else if (actionKey === 'create_google_ads_key') {
+      createCredential({
+        name: 'ai-google-ads-key',
+        type: 'API_KEY',
+        provider: 'GOOGLE_ADS',
+        scope: 'GLOBAL',
+        ownerId: 'operator-1',
+        plainTextSecret: 'ai-secret-98765-qwerty'
+      }).then(() => {
+        addNotification('Google Ads API key registered successfully via AI.', 'success');
+      }).catch(() => {
+        addNotification('Failed to register Google Ads key via AI.', 'error');
+      });
     }
   };
 
-  // Build display workers (falling back to mocks if DB is empty)
-  const displayWorkers = workers.length === 0 ? Array.from({ length: workersCount }).map((_, i) => ({
-    id: `Worker-${i + 1}`,
-    status: i === 3 ? 'Unhealthy' : 'Idle',
-    cpu: `${(Math.random() * 80 + 5).toFixed(1)}%`,
-    ram: `${(Math.random() * 12 + 2).toFixed(1)} GB / 16 GB`,
-    region: i % 2 === 0 ? 'us-west-2' : 'eu-central-1',
-    plugins: 'SAP, Google Ads, Playwright'
-  })) : workers.map((w) => ({
+  const onlineWorkers = workers.filter(w => w.status === 'ONLINE');
+  
+  const avgCpu = onlineWorkers.length > 0
+    ? onlineWorkers.reduce((acc, w) => acc + (w.cpuUsage ?? 0), 0) / onlineWorkers.length
+    : 0;
+
+  const uniquePlugins = new Set<string>();
+  workers.forEach(w => {
+    if (w.capabilities && typeof w.capabilities === 'object') {
+      Object.keys(w.capabilities).forEach(p => uniquePlugins.add(p));
+    }
+  });
+  const installedPluginsCount = uniquePlugins.size;
+
+  const totalCreds = credentials.length;
+  const activeCreds = credentials.filter(c => c.status === 'ACTIVE' || c.status === 'active' || c.status === 'Active').length;
+  const secretsRotationHealth = totalCreds > 0 ? Math.round((activeCreds / totalCreds) * 100) : 100;
+
+  // Build display workers (without mock fallbacks)
+  const displayWorkers = workers.map((w) => ({
     id: w.id,
     status: w.status === 'ONLINE' ? 'Idle' : 'Offline',
-    cpu: '14.2%',
-    ram: '3.8 GB / 8 GB',
+    cpu: w.cpuUsage !== undefined && w.cpuUsage !== null ? `${w.cpuUsage.toFixed(1)}%` : 'N/A',
+    ram: w.memoryUsage !== undefined && w.memoryUsage !== null ? `${w.memoryUsage.toFixed(1)} GB / 8 GB` : 'N/A',
     region: 'local-pc',
     plugins: w.capabilities && typeof w.capabilities === 'object' 
       ? Object.keys(w.capabilities).join(', ')
-      : 'SAP, Salesforce, Playwright'
+      : 'None'
   }));
 
   return (
@@ -430,19 +463,29 @@ export const Shell: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                 <div className="glass-card" style={{ padding: '20px' }}>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>Active Workers</div>
-                  <div style={{ fontSize: '28px', fontWeight: 700 }}>{displayWorkers.length} <span style={{ fontSize: '14px', color: 'var(--color-success)' }}>ONLINE</span></div>
+                  <div style={{ fontSize: '28px', fontWeight: 700 }}>
+                    {onlineWorkers.length} <span style={{ fontSize: '14px', color: 'var(--color-success)' }}>ONLINE</span>
+                  </div>
                 </div>
                 <div className="glass-card" style={{ padding: '20px' }}>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>CPU Infrastructure Load</div>
-                  <div style={{ fontSize: '28px', fontWeight: 700 }}>42.8% <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>AVG</span></div>
+                  <div style={{ fontSize: '28px', fontWeight: 700 }}>
+                    {avgCpu.toFixed(1)}% <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>AVG</span>
+                  </div>
                 </div>
                 <div className="glass-card" style={{ padding: '20px' }}>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>Installed Plugins</div>
-                  <div style={{ fontSize: '28px', fontWeight: 700 }}>14 <span style={{ fontSize: '14px', color: 'var(--color-primary)' }}>ACTIVE</span></div>
+                  <div style={{ fontSize: '28px', fontWeight: 700 }}>
+                    {installedPluginsCount} <span style={{ fontSize: '14px', color: 'var(--color-primary)' }}>ACTIVE</span>
+                  </div>
                 </div>
                 <div className="glass-card" style={{ padding: '20px' }}>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>Secrets Rotation health</div>
-                  <div style={{ fontSize: '28px', fontWeight: 700 }}>100% <span style={{ fontSize: '14px', color: 'var(--color-success)' }}>SECURE</span></div>
+                  <div style={{ fontSize: '28px', fontWeight: 700 }}>
+                    {secretsRotationHealth}% <span style={{ fontSize: '14px', color: secretsRotationHealth === 100 ? 'var(--color-success)' : 'var(--color-warning)' }}>
+                      {secretsRotationHealth === 100 ? 'SECURE' : 'WARN'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -559,8 +602,7 @@ export const Shell: React.FC = () => {
                 </div>
                 <button
                   onClick={() => {
-                    setWorkersCount((prev) => prev + 1);
-                    addNotification('Worker provisioning task started successfully.', 'success');
+                    addNotification('Worker provisioning pipeline initiated in the cloud.', 'success');
                   }}
                   style={{
                     padding: '10px',

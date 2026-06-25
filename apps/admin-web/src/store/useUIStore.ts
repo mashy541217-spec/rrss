@@ -9,6 +9,8 @@ export interface WorkerInfo {
   concurrencyLimit: number;
   activeJobCount: number;
   registeredAt: string;
+  cpuUsage?: number | null;
+  memoryUsage?: number | null;
 }
 
 export interface CredentialInfo {

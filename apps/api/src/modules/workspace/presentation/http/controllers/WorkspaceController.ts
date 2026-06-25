@@ -17,6 +17,26 @@ export class WorkspaceController {
     private readonly prisma: PrismaService // For the direct query
   ) {}
 
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List all workspaces' })
+  @ApiResponse({ status: 200, description: 'Workspaces listed successfully' })
+  async listWorkspaces(): Promise<any[]> {
+    this.logger.info('Received request to list workspaces');
+    return this.prisma.workspace.findMany({
+      where: { isDeleted: false },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        status: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new workspace' })
