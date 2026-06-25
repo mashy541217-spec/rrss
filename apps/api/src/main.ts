@@ -7,6 +7,7 @@ import { ILogger } from '@rrss-auto/logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  app.enableCors();
 
   const logger = app.get<ILogger>('ILogger');
   app.useLogger(logger as any);

@@ -1,6 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Worker, WorkerStatus } from '../domain/Worker';
-import { WorkerCapabilities } from '../domain/value-objects/WorkerCapabilities';
+import { PrismaService } from '../../../infrastructure/database/prisma/PrismaService';
 
 export class RegisterWorkerCommand {
   constructor(
@@ -17,33 +16,42 @@ export class RegisterWorkerCommand {
 
 @CommandHandler(RegisterWorkerCommand)
 export class RegisterWorkerUseCase implements ICommandHandler<RegisterWorkerCommand> {
-  // In a real app, this would be injected
-  // constructor(private readonly workerRepository: IWorkerRepository) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async execute(command: RegisterWorkerCommand): Promise<Worker> {
-    const capabilities = new WorkerCapabilities(
-      command.installedPlugins,
-      command.browserEngines,
-      command.aiSupport,
-      command.platform,
-      command.architecture
-    );
+  async execute(command: RegisterWorkerCommand): Promise<any> {
+    const capabilities = {
+      installedPlugins: command.installedPlugins,
+      browserEngines: command.browserEngines,
+      aiSupport: command.aiSupport,
+      platform: command.platform,
+      architecture: command.architecture
+    };
 
-    const worker = new Worker(
-      command.workerId,
-      command.hostname,
-      command.version,
-      WorkerStatus.ONLINE,
-      capabilities,
-      {},
-      'local-pc',
-      null,
-      new Date(),
-      new Date()
-    );
+    // Upsert worker in database
+    const dbWorker = await this.prisma.worker.upsert({
+      where: { id: command.workerId },
+      update: {
+        hostname: command.hostname,
+        status: 'ONLINE',
+        capabilities: capabilities as any,
+        concurrencyLimit: 4,
+        isDeleted: false,
+        version: { increment: 1 }
+      },
+      create: {
+        id: command.workerId,
+        hostname: command.hostname,
+        status: 'ONLINE',
+        capabilities: capabilities as any,
+        concurrencyLimit: 4,
+        activeJobCount: 0,
+        registeredAt: new Date(),
+        version: 1,
+        isDeleted: false
+      }
+    });
 
-    // await this.workerRepository.save(worker);
-    console.log(`[Worker] Registered new worker ${worker.id} at ${worker.hostname}`);
-    return worker;
+    console.log(`[Worker] Registered worker ${dbWorker.id} (${dbWorker.hostname}) in database.`);
+    return dbWorker;
   }
 }

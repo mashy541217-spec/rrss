@@ -4,6 +4,8 @@ import { WorkerController } from './presentation/http/WorkerController';
 import { WorkerGateway } from './presentation/WorkerGateway';
 import { WorkerInfrastructureModule } from './infrastructure/worker.infrastructure.module';
 import { PrismaService } from '../../infrastructure/database/prisma/PrismaService';
+import { RegisterWorkerUseCase } from './application/RegisterWorkerUseCase';
+import { HeartbeatWorkerUseCase } from './application/HeartbeatWorkerUseCase';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { PrismaService } from '../../infrastructure/database/prisma/PrismaServic
   providers: [
     WorkerGateway,
     PrismaService,
+    RegisterWorkerUseCase,
+    HeartbeatWorkerUseCase,
   ],
   exports: [
     WorkerGateway,
