@@ -1,4 +1,4 @@
-import { Worker } from '../../worker/domain/Worker';
+import { Worker } from '../../../worker/domain/Worker';
 
 export interface IExecutionRepository {
   findActiveExecutionsByWorkerId(workerId: string): Promise<any[]>;

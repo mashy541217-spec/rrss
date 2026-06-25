@@ -29,7 +29,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       message = exception.message;
     }
 
-    this.logger.error(`[${request.method}] ${request.url} - ${status} - ${message}`, exception instanceof Error ? exception.stack : undefined);
+    this.logger.error(`[${request.method}] ${request.url} - ${status} - ${message}`, exception as any);
 
     response.status(status).json({
       statusCode: status,

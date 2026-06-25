@@ -1,8 +1,8 @@
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { CommandBus } from '@nestjs/cqrs';
-import { RegisterWorkerCommand } from './RegisterWorkerUseCase';
-import { HeartbeatWorkerCommand } from './HeartbeatWorkerUseCase';
+import { RegisterWorkerCommand } from '../application/RegisterWorkerUseCase';
+import { HeartbeatWorkerCommand } from '../application/HeartbeatWorkerUseCase';
 
 @WebSocketGateway({ namespace: '/workers' })
 export class WorkerGateway {

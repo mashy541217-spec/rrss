@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useUIStore } from '../../store/useUIStore';
 import { VirtualTable } from '../common/VirtualTable';
+import { CredentialsPanel } from '../modules/CredentialsPanel';
 import {
   LayoutDashboard, Building2, Layers, Cpu, Radio, PlusSquare, 
   Puzzle, Key, Workflow, Cloud, Eye, ShieldCheck, ShoppingCart, 
@@ -13,7 +14,8 @@ export const Shell: React.FC = () => {
     theme, sidebarCollapsed, activeModule, selectedOrg, selectedWorkspace, 
     notifications, toggleTheme, setSidebarCollapsed, setActiveModule, 
     setSelectedOrg, setSelectedWorkspace, toggleCommandPalette, toggleAIAssistant,
-    aiAssistantOpen, addNotification, clearNotification
+    aiAssistantOpen, addNotification, clearNotification,
+    workers, workspaces, fetchWorkers, fetchWorkspaces
   } = useUIStore();
 
   const [aiPrompt, setAiPrompt] = useState('');
@@ -23,8 +25,18 @@ export const Shell: React.FC = () => {
 
   const [workersCount, setWorkersCount] = useState(12);
 
+  // Load workspaces and workers dynamically
+  useEffect(() => {
+    fetchWorkspaces();
+  }, [fetchWorkspaces]);
+
+  useEffect(() => {
+    if (activeModule === 'workers') {
+      fetchWorkers();
+    }
+  }, [activeModule, fetchWorkers]);
+
   const orgs = ['RRSS Global Inc.', 'North America Logistics', 'EMEA Retail Group'];
-  const workspaces = ['Production Enterprise', 'Staging Sandbox', 'Compliance Audit'];
 
   const navigationItems = [
     { id: 'dashboard', name: 'Dashboard', icon: <LayoutDashboard size={18} /> },
@@ -83,6 +95,25 @@ export const Shell: React.FC = () => {
       addNotification('Plugin @rrss-auto/plugin-telegram deployed successfully.', 'success');
     }
   };
+
+  // Build display workers (falling back to mocks if DB is empty)
+  const displayWorkers = workers.length === 0 ? Array.from({ length: workersCount }).map((_, i) => ({
+    id: `Worker-${i + 1}`,
+    status: i === 3 ? 'Unhealthy' : 'Idle',
+    cpu: `${(Math.random() * 80 + 5).toFixed(1)}%`,
+    ram: `${(Math.random() * 12 + 2).toFixed(1)} GB / 16 GB`,
+    region: i % 2 === 0 ? 'us-west-2' : 'eu-central-1',
+    plugins: 'SAP, Google Ads, Playwright'
+  })) : workers.map((w) => ({
+    id: w.id,
+    status: w.status === 'ONLINE' ? 'Idle' : 'Offline',
+    cpu: '14.2%',
+    ram: '3.8 GB / 8 GB',
+    region: 'local-pc',
+    plugins: w.capabilities && typeof w.capabilities === 'object' 
+      ? Object.keys(w.capabilities).join(', ')
+      : 'SAP, Salesforce, Playwright'
+  }));
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
@@ -177,9 +208,13 @@ export const Shell: React.FC = () => {
                 className="glass-input"
                 style={{ width: '100%', fontSize: '12px' }}
               >
-                {workspaces.map((w) => (
-                  <option key={w} value={w} style={{ background: '#1e293b', color: '#fff' }}>{w}</option>
-                ))}
+                {workspaces.length === 0 ? (
+                  <option value="Production Enterprise" style={{ background: '#1e293b', color: '#fff' }}>Production Enterprise</option>
+                ) : (
+                  workspaces.map((w) => (
+                    <option key={w.id} value={w.name} style={{ background: '#1e293b', color: '#fff' }}>{w.name}</option>
+                  ))
+                )}
               </select>
             </div>
           </div>
@@ -395,7 +430,7 @@ export const Shell: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                 <div className="glass-card" style={{ padding: '20px' }}>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>Active Workers</div>
-                  <div style={{ fontSize: '28px', fontWeight: 700 }}>{workersCount} <span style={{ fontSize: '14px', color: 'var(--color-success)' }}>ONLINE</span></div>
+                  <div style={{ fontSize: '28px', fontWeight: 700 }}>{displayWorkers.length} <span style={{ fontSize: '14px', color: 'var(--color-success)' }}>ONLINE</span></div>
                 </div>
                 <div className="glass-card" style={{ padding: '20px' }}>
                   <div style={{ color: 'var(--color-text-muted)', fontSize: '12px', textTransform: 'uppercase', marginBottom: '8px' }}>CPU Infrastructure Load</div>
@@ -452,14 +487,7 @@ export const Shell: React.FC = () => {
           {activeModule === 'workers' && (
             <div className="glass-card" style={{ padding: '24px', height: '500px' }}>
               <VirtualTable
-                data={Array.from({ length: workersCount }).map((_, i) => ({
-                  id: `Worker-${i + 1}`,
-                  status: i === 3 ? 'Unhealthy' : 'Idle',
-                  cpu: `${(Math.random() * 80 + 5).toFixed(1)}%`,
-                  ram: `${(Math.random() * 12 + 2).toFixed(1)} GB / 16 GB`,
-                  region: i % 2 === 0 ? 'us-west-2' : 'eu-central-1',
-                  plugins: 'SAP, Google Ads, Playwright'
-                }))}
+                data={displayWorkers}
                 itemHeight={50}
                 containerHeight={400}
                 header={
@@ -551,8 +579,12 @@ export const Shell: React.FC = () => {
             </div>
           )}
 
+          {activeModule === 'credentials' && (
+            <CredentialsPanel />
+          )}
+
           {/* Placeholder for remaining modules */}
-          {!['dashboard', 'workers', 'provisioning'].includes(activeModule) && (
+          {!['dashboard', 'workers', 'provisioning', 'credentials'].includes(activeModule) && (
             <div className="glass-card" style={{ padding: '40px', textAlign: 'center' }}>
               <h3 style={{ marginBottom: '12px', textTransform: 'capitalize' }}>
                 {navigationItems.find((n) => n.id === activeModule)?.name} Dashboard

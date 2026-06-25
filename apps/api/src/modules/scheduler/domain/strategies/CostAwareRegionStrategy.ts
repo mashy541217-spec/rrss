@@ -1,5 +1,5 @@
-import { Worker, WorkerStatus } from '../../worker/domain/Worker';
-import { CostProfile } from '../../orchestrator/domain/value-objects/CostProfile';
+import { Worker, WorkerStatus } from '../../../worker/domain/Worker';
+import { CostProfile } from '../../../orchestrator/domain/value-objects/CostProfile';
 
 export class CostAwareRegionStrategy {
   /**

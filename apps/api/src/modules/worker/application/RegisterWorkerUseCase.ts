@@ -1,6 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Worker, WorkerStatus } from '../../domain/Worker';
-import { WorkerCapabilities } from '../../domain/value-objects/WorkerCapabilities';
+import { Worker, WorkerStatus } from '../domain/Worker';
+import { WorkerCapabilities } from '../domain/value-objects/WorkerCapabilities';
 
 export class RegisterWorkerCommand {
   constructor(
@@ -35,6 +35,8 @@ export class RegisterWorkerUseCase implements ICommandHandler<RegisterWorkerComm
       command.version,
       WorkerStatus.ONLINE,
       capabilities,
+      {},
+      'local-pc',
       null,
       new Date(),
       new Date()

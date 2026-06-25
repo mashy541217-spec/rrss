@@ -1,6 +1,6 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { ConfigService } from '@rrss-auto/configuration';
-import { LoggerService } from '@rrss-auto/logger';
+import { Injectable, OnModuleInit, OnModuleDestroy, Inject } from '@nestjs/common';
+import { IConfigurationProvider } from '@rrss-auto/configuration';
+import { ILogger } from '@rrss-auto/logger';
 import Redis from 'ioredis';
 
 @Injectable()
@@ -8,12 +8,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private client: Redis;
 
   constructor(
-    private readonly config: ConfigService,
-    private readonly logger: LoggerService
+    @Inject('IConfigurationProvider') private readonly config: IConfigurationProvider,
+    @Inject('ILogger') private readonly logger: ILogger
   ) {}
 
   onModuleInit() {
-    const url = this.config.get<string>('REDIS_URL') || 'redis://localhost:6379';
+    const url = this.config.get('REDIS_URL') || 'redis://localhost:6379';
     this.client = new Redis(url);
 
     this.client.on('connect', () => {

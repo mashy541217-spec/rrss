@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { WorkerHealth } from '../../domain/value-objects/WorkerHealth';
+import { WorkerHealth } from '../domain/value-objects/WorkerHealth';
 
 export class HeartbeatWorkerCommand {
   constructor(

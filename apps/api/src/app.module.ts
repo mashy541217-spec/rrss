@@ -23,6 +23,7 @@ import { DiscordModule } from './modules/discord/DiscordModule';
 import { SlackModule } from './modules/slack/SlackModule';
 import { EnterpriseModule } from './modules/enterprise/EnterpriseModule';
 import { OrchestratorModule } from './modules/orchestrator/OrchestratorModule';
+import { WorkerModule } from './modules/worker/worker.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { OrchestratorModule } from './modules/orchestrator/OrchestratorModule';
     DiscordModule,
     SlackModule,
     EnterpriseModule,
+    WorkerModule,
   ],
   controllers: [],
   providers: [PrismaService],

@@ -11,13 +11,43 @@ import { RevokeCredentialCommand } from '../../application/use-cases/RevokeCrede
 import { UpdateCredentialMetadataCommand } from '../../application/use-cases/UpdateCredentialMetadata/UpdateCredentialMetadataCommand';
 import { ReadCredentialQuery } from '../../application/use-cases/ReadCredential/ReadCredentialQuery';
 
+import { PrismaService } from '../../../../infrastructure/database/prisma/PrismaService';
+
 @ApiTags('Credentials')
 @Controller('credentials')
 export class CredentialController {
   constructor(
     private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus
+    private readonly queryBus: QueryBus,
+    private readonly prisma: PrismaService
   ) {}
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List all credentials metadata' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Credentials retrieved successfully' })
+  public async list() {
+    return this.prisma.credential.findMany({
+      where: {
+        isDeleted: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        status: true,
+        provider: true,
+        scope: true,
+        ownerId: true,
+        metadata: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

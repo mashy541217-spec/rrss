@@ -27,7 +27,7 @@ export * from './repositories/IWorkerRepository';
 export * from './services/ExecutionStateGuard';
 export * from './services/RetryPolicyEvaluator';
 
-export * from './specifications';
+// export * from './specifications';
 
 export * from './value-objects/CapabilityRequirement';
 export * from './value-objects/ExecutionContext';

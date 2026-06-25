@@ -1,4 +1,4 @@
-import { Worker, WorkerStatus } from '../../worker/domain/Worker';
+import { Worker, WorkerStatus } from '../../../worker/domain/Worker';
 
 export class IntelligentSchedulingStrategy {
   
