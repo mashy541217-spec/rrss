@@ -1,0 +1,19 @@
+{
+  "name": "@rrss-auto/plugin-sap",
+  "version": "1.0.0",
+  "description": "SAP Enterprise Plugin for RRSS AUTO",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@rrss-auto/erp-sdk": "1.0.0",
+    "@rrss-auto/browser-engine-sdk": "1.0.0",
+    "@rrss-auto/desktop-sdk": "1.0.0",
+    "@rrss-auto/plugin-sdk": "1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

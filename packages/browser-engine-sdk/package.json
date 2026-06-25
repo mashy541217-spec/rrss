@@ -1,0 +1,17 @@
+{
+  "name": "@rrss-auto/browser-engine-sdk",
+  "version": "1.0.0",
+  "description": "Shared Engine implementation logic for Browser Drivers (Playwright, Puppeteer, Selenium)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@rrss-auto/plugin-sdk": "^1.0.0",
+    "@rrss-auto/browser-sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

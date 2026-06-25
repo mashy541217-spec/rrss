@@ -1,3 +1,5 @@
+import { Injectable, Inject } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { IUseCase, IEventBus, ApplicationException } from '@rrss-auto/application';
 import { IWorkspaceRepository } from '../../../domain/repositories/IWorkspaceRepository';
 import { WorkspaceId } from '../../../domain/value-objects/WorkspaceId';
@@ -5,10 +7,12 @@ import { WorkspaceSettings } from '../../../domain/value-objects/WorkspaceSettin
 import { WorkspaceTimezone } from '../../../domain/value-objects/WorkspaceTimezone';
 import { UpdateWorkspaceSettingsCommand } from './UpdateWorkspaceSettingsCommand';
 
-export class UpdateWorkspaceSettingsUseCase implements IUseCase<UpdateWorkspaceSettingsCommand, void> {
+@Injectable()
+@CommandHandler(UpdateWorkspaceSettingsCommand)
+export class UpdateWorkspaceSettingsUseCase implements IUseCase<UpdateWorkspaceSettingsCommand, void>, ICommandHandler<UpdateWorkspaceSettingsCommand, void> {
   constructor(
-    private readonly workspaceRepository: IWorkspaceRepository,
-    private readonly eventBus: IEventBus
+    @Inject('IWorkspaceRepository') private readonly workspaceRepository: IWorkspaceRepository,
+    @Inject('IEventBus') private readonly eventBus: IEventBus
   ) {}
 
   public async execute(command: UpdateWorkspaceSettingsCommand): Promise<void> {

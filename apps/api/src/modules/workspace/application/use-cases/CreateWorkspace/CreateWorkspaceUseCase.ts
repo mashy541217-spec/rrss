@@ -1,3 +1,5 @@
+import { Injectable, Inject } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { IUseCase, IEventBus, ApplicationException } from '@rrss-auto/application';
 import { IIdentifierProvider } from '@rrss-auto/domain';
 import { WorkspaceFactory } from '../../../domain/factories/WorkspaceFactory';
@@ -11,11 +13,13 @@ import { WorkspaceTimezone } from '../../../domain/value-objects/WorkspaceTimezo
 import { WorkspaceLimits } from '../../../domain/value-objects/WorkspaceLimits';
 import { CreateWorkspaceCommand } from './CreateWorkspaceCommand';
 
-export class CreateWorkspaceUseCase implements IUseCase<CreateWorkspaceCommand, string> {
+@Injectable()
+@CommandHandler(CreateWorkspaceCommand)
+export class CreateWorkspaceUseCase implements IUseCase<CreateWorkspaceCommand, string>, ICommandHandler<CreateWorkspaceCommand, string> {
   constructor(
-    private readonly workspaceRepository: IWorkspaceRepository,
-    private readonly eventBus: IEventBus,
-    private readonly identifierProvider: IIdentifierProvider
+    @Inject('IWorkspaceRepository') private readonly workspaceRepository: IWorkspaceRepository,
+    @Inject('IEventBus') private readonly eventBus: IEventBus,
+    @Inject('IIdentifierProvider') private readonly identifierProvider: IIdentifierProvider
   ) {}
 
   public async execute(command: CreateWorkspaceCommand): Promise<string> {

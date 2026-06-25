@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false,
+    "verbatimModuleSyntax": false,
+    "composite": true
+  },
+  "references": [
+    {
+      "path": "../erp-sdk"
+    },
+    {
+      "path": "../desktop-sdk"
+    },
+    {
+      "path": "../browser-engine-sdk"
+    },
+    {
+      "path": "../plugin-sdk"
+    }
+  ],
+  "include": [
+    "src/**/*"
+  ]
+}

@@ -13,20 +13,804 @@ datasource db {
 // ----------------------------------------------------------------------------
 // OUTBOX PATTERN FOUNDATION
 // ----------------------------------------------------------------------------
-// Used to reliably publish domain events from bounded contexts to the message broker.
-
 model OutboxMessage {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   aggregateType String
   aggregateId   String
   eventType     String
   payload       Json
-  status        String   @default("PENDING") // PENDING, PROCESSED, FAILED
+  status        String    @default("PENDING") // PENDING, PROCESSED, FAILED, DEAD_LETTER
+  retries       Int       @default(0)
   error         String?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
   processedAt   DateTime?
 
   @@index([status, createdAt])
 }
 
-// Additional models will be added in upcoming sprints for each Bounded Context
+// ----------------------------------------------------------------------------
+// WORKSPACE BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model Workspace {
+  id       String @id
+  name     String
+  slug     String @unique
+  ownerId  String
+  status   String
+  settings Json
+  limits   Json
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([ownerId])
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// IDENTITY BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model User {
+  id           String @id
+  email        String @unique
+  displayName  String
+  passwordHash String
+  status       String
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([email])
+  @@index([status])
+}
+
+model Membership {
+  id           String @id
+  userId       String
+  workspaceRef String
+  roleId       String
+  status       String
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([workspaceRef])
+  @@index([status])
+}
+
+model WorkspaceRole {
+  id           String   @id
+  name         String
+  description  String
+  workspaceRef String
+  permissions  String[]
+  status       String
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+  @@index([status])
+}
+
+model Invitation {
+  id           String   @id
+  email        String
+  workspaceRef String
+  roleId       String
+  token        String
+  status       String
+  expiresAt    DateTime
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([email])
+  @@index([workspaceRef])
+  @@index([token])
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// EXECUTION BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+
+model Execution {
+  id               String  @id
+  workspaceRef     String
+  idempotencyKey   String  @unique
+  status           String
+  retryPolicy      Json
+  attemptsMade     Int     @default(0)
+  totalSteps       Int     @default(0)
+  completedSteps   Int     @default(0)
+  assignedWorkerId String?
+  failure          Json?
+
+  metadata ExecutionMetadata?
+  timeline ExecutionTimeline[]
+  steps    ExecutionStep[]
+  jobs     Job[]
+
+  // Traits
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+  @@index([status])
+  @@index([assignedWorkerId])
+}
+
+model ExecutionMetadata {
+  id           String    @id @default(uuid())
+  executionId  String    @unique
+  execution    Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  actor        String
+  intent       String
+  priority     String
+  capabilities Json // Array of capability requirements
+}
+
+model ExecutionTimeline {
+  id          String    @id @default(uuid())
+  executionId String
+  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  status      String
+  occurredAt  DateTime
+  message     String
+  actor       String?
+
+  @@index([executionId, occurredAt])
+}
+
+model ExecutionStep {
+  id             String    @id
+  executionId    String
+  execution      Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  order          Int
+  name           String
+  description    String
+  capabilityType String
+  idempotencyKey String
+  status         String
+  output         String?
+  failure        Json?
+  retryAttempts  Int       @default(0)
+  startedAt      DateTime?
+  completedAt    DateTime?
+
+  // Traits
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([executionId, idempotencyKey])
+  @@index([executionId, order])
+  @@index([status])
+}
+
+model Job {
+  id                String    @id
+  executionId       String
+  execution         Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  stepId            String?
+  workspaceRef      String
+  status            String
+  priority          String
+  queue             String
+  claimedByWorkerId String?
+  claimedAt         DateTime?
+  attempts          Int       @default(0)
+  maxAttempts       Int       @default(3)
+  enqueuedAt        DateTime?
+  leaseExpiresAt    DateTime?
+
+  assignments WorkerAssignment[]
+
+  // Traits
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([executionId])
+  @@index([status])
+  @@index([queue])
+  @@index([claimedByWorkerId])
+}
+
+model WorkerAssignment {
+  id             String   @id @default(uuid())
+  jobId          String
+  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  workerId       String
+  claimedAt      DateTime @default(now())
+  leaseExpiresAt DateTime
+  status         String // ACTIVE, EXPIRED, COMPLETED, FAILED
+
+  @@index([jobId])
+  @@index([workerId])
+}
+
+// ----------------------------------------------------------------------------
+// SCHEDULER BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model Scheduler {
+  id                    String @id
+  status                String
+  concurrencyPolicy     Json
+  workerSelectionPolicy Json
+  priorityPolicy        Json
+  retryPolicy           Json
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Schedule {
+  id                String    @id
+  workspaceRef      String
+  status            String
+  schedulingPolicy  Json
+  priorityPolicy    Json
+  concurrencyPolicy Json?
+  lastRunAt         DateTime?
+  nextRunAt         DateTime?
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+  @@index([status])
+  @@index([nextRunAt])
+}
+
+model ExecutionReservation {
+  id          String   @id
+  executionId String
+  workerId    String
+  status      String
+  reservedAt  DateTime
+  expiresAt   DateTime
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([executionId])
+  @@index([workerId])
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// RESOURCE MANAGER BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model CapacityManager {
+  id             String @id
+  status         String
+  globalLimits   Json
+  reservedLimits Json
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ResourcePool {
+  id            String @id
+  name          String
+  totalCapacity Json
+  usedCapacity  Json
+  status        String
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ResourceReservation {
+  id           String   @id
+  poolId       String
+  resourceType String
+  amount       Int
+  status       String
+  expiresAt    DateTime
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([poolId])
+}
+
+model ResourceLease {
+  id        String   @id
+  workerId  String
+  poolId    String
+  resources Json
+  status    String
+  grantedAt DateTime
+  expiresAt DateTime
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workerId])
+  @@index([poolId])
+  @@index([status])
+}
+
+// ----------------------------------------------------------------------------
+// WORKER BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model Worker {
+  id               String   @id
+  hostname         String   @unique
+  status           String
+  capabilities     Json // Array of WorkerCapability
+  currentJobId     String?
+  concurrencyLimit Int
+  activeJobCount   Int
+  registeredAt     DateTime
+
+  sessions    WorkerSession[]
+  heartbeats  WorkerHeartbeat[]
+  assignments ExecutionAssignment[]
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([status])
+}
+
+model WorkerSession {
+  id        String    @id
+  workerId  String
+  worker    Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  startedAt DateTime
+  endedAt   DateTime?
+  status    String
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workerId])
+}
+
+model WorkerHeartbeat {
+  id          String   @id
+  workerId    String
+  worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  receivedAt  DateTime
+  cpuUsage    Float?
+  memoryUsage Float?
+  status      String
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workerId, receivedAt])
+}
+
+model ExecutionAssignment {
+  id          String    @id
+  workerId    String
+  worker      Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
+  executionId String
+  jobId       String
+  status      String
+  assignedAt  DateTime
+  completedAt DateTime?
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workerId])
+  @@index([executionId])
+  @@index([jobId])
+}
+
+// ----------------------------------------------------------------------------
+// CREDENTIALS BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model Credential {
+  id        String    @id
+  name      String
+  type      String
+  status    String
+  provider  String
+  scope     String
+  ownerId   String
+  metadata  Json      @default("{}")
+  policy    Json      @default("{}")
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  secrets CredentialSecret[]
+
+  @@index([ownerId])
+  @@index([status])
+  @@index([type])
+}
+
+model CredentialSecret {
+  id                     String     @id
+  credentialId           String
+  credential             Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  version                Int
+  encryptedValue         String
+  algorithm              String
+  encryptionKeyReference String?
+  vaultReference         String?
+  isActive               Boolean    @default(true)
+  createdAt              DateTime   @default(now())
+
+  @@unique([credentialId, version])
+  @@index([credentialId])
+}
+
+// ----------------------------------------------------------------------------
+// CONTENT BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model Content {
+  id           String  @id
+  workspaceRef String
+  status       String
+  title        String?
+  body         String?
+  metadata     Json    @default("{}")
+  analytics    Json    @default("{}")
+
+  versions    ContentVersion[]
+  collections MediaCollection[]
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+  @@index([status])
+}
+
+model ContentVersion {
+  id        String   @id
+  contentId String
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  version   Int
+  changes   Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  @@unique([contentId, version])
+  @@index([contentId])
+}
+
+model Asset {
+  id           String  @id
+  workspaceRef String
+  status       String
+  mediaType    String
+  mimeType     String
+  checksum     String?
+  fileSize     BigInt?
+  metadata     Json    @default("{}")
+
+  mediaFiles MediaFile[]
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+  @@index([mediaType])
+  @@index([status])
+}
+
+model MediaFile {
+  id       String  @id
+  assetId  String
+  asset    Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  url      String
+  bucket   String?
+  key      String?
+  size     BigInt
+  metadata Json    @default("{}")
+
+  createdAt DateTime @default(now())
+
+  @@index([assetId])
+}
+
+model MediaCollection {
+  id         String  @id
+  contentId  String
+  content    Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  name       String
+  type       String
+  mediaItems Json    @default("[]") // References to Asset IDs
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([contentId])
+}
+
+model ContentTemplate {
+  id           String  @id
+  workspaceRef String
+  name         String
+  description  String?
+  schema       Json    @default("{}")
+  defaultData  Json    @default("{}")
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+}
+
+model PublicationProfile {
+  id           String @id
+  workspaceRef String
+  name         String
+  targets      Json   @default("[]") // Array of PublicationTarget
+  settings     Json   @default("{}")
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+}
+
+// ----------------------------------------------------------------------------
+// CAMPAIGN BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model Campaign {
+  id           String   @id
+  workspaceRef String
+  name         String
+  description  String?
+  status       String // Draft, Ready, Scheduled, Running, Paused, Completed, Archived, Cancelled
+  priority     String // Low, Medium, High, Critical
+  objective    String // Engagement, Traffic, Conversions, BrandAwareness
+  strategy     String // Manual, Scheduled, Triggered
+  tags         String[]
+  budget       Json // { amount, currency, spent, type }
+  schedule     Json? // { startDate, endDate, cron, timezone }
+  audience     Json? // { name, segments, rules }
+  goals        Json? // Array or single objective metric
+  analytics    Json?
+
+  publications    Publication[]
+  channels        CampaignChannel[]
+  contents        CampaignContent[]
+  executions      CampaignExecution[]
+  metricSnapshots CampaignMetricSnapshot[]
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+  @@index([status])
+}
+
+model Publication {
+  id          String    @id
+  campaignId  String
+  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  status      String // Draft, Scheduled, Published, Failed, Cancelled
+  format      String // POST, STORY, REEL, VIDEO, etc.
+  contentId   String
+  publishAt   DateTime?
+  publishedAt DateTime?
+  url         String?
+  externalId  String?
+  metadata    Json      @default("{}")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([campaignId])
+}
+
+model CampaignChannel {
+  id            String   @id
+  campaignId    String
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  platform      String
+  type          String
+  configuration Json     @default("{}")
+  createdAt     DateTime @default(now())
+
+  @@index([campaignId])
+}
+
+model CampaignContent {
+  id         String   @id
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contentId  String
+  attachedAt DateTime @default(now())
+  attachedBy String
+
+  @@index([campaignId])
+}
+
+model CampaignExecution {
+  id            String   @id
+  campaignId    String
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  executionId   String
+  publicationId String?
+  status        String
+  triggeredAt   DateTime @default(now())
+
+  @@index([campaignId])
+}
+
+model CampaignMetricSnapshot {
+  id         String   @id
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  recordedAt DateTime @default(now())
+  metrics    Json     @default("{}")
+
+  @@index([campaignId])
+}
+
+// ----------------------------------------------------------------------------
+// AUTOMATION BOUNDED CONTEXT
+// ----------------------------------------------------------------------------
+model Automation {
+  id            String               @id
+  workspaceRef  String
+  name          String
+  description   String?
+  status        String // Draft, Published, Running, Paused, Archived, Deleted
+  variables     Json                 @default("[]") // Array of variable definitions
+  trigger       Json? // Trigger configuration
+  retryConfig   Json? // Retry settings
+  timeoutConfig Json? // Timeout settings
+  executionPlan Json? // Generated ExecutionPlan json representation
+
+  nodes       WorkflowNode[]
+  connections WorkflowConnection[]
+  versions    AutomationVersion[]
+  snapshots   AutomationSnapshot[]
+
+  version   Int       @default(1)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([workspaceRef])
+  @@index([status])
+}
+
+model WorkflowNode {
+  id           String     @id
+  automationId String
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  type         String // Trigger, Condition, Action
+  name         String
+  config       Json       @default("{}")
+  positionX    Float      @default(0)
+  positionY    Float      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([automationId])
+}
+
+model WorkflowConnection {
+  id           String     @id
+  automationId String
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  sourceId     String
+  targetId     String
+  sourceHandle String?
+  targetHandle String?
+  condition    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([automationId])
+}
+
+model AutomationVersion {
+  id            String     @id
+  automationId  String
+  automation    Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  status        String
+  trigger       Json?
+  nodes         Json       @default("[]")
+  connections   Json       @default("[]")
+  variables     Json       @default("[]")
+  executionPlan Json?
+  createdAt     DateTime   @default(now())
+
+  @@unique([automationId, versionNumber])
+  @@index([automationId])
+}
+
+model AutomationSnapshot {
+  id           String     @id
+  automationId  String
+  automation    Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  snapshotData Json       @default("{}")
+  createdAt    DateTime   @default(now())
+
+  @@index([automationId])
+}
+

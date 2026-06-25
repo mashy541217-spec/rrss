@@ -1,0 +1,7 @@
+export enum RotationPolicy {
+  MANUAL = 'MANUAL',
+  AUTO_30_DAYS = 'AUTO_30_DAYS',
+  AUTO_90_DAYS = 'AUTO_90_DAYS',
+  AUTO_180_DAYS = 'AUTO_180_DAYS',
+  AUTO_365_DAYS = 'AUTO_365_DAYS',
+}

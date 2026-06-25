@@ -1,0 +1,14 @@
+{
+  "name": "@rrss-auto/meta-sdk",
+  "version": "1.0.0",
+  "description": "Common Meta SDK Platform Core Extension for RRSS AUTO",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

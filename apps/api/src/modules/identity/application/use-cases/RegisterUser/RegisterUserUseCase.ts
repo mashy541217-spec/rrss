@@ -1,3 +1,5 @@
+import { Injectable, Inject } from '@nestjs/common';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { IUseCase, IEventBus } from '@rrss-auto/application';
 import { IIdentifierProvider } from '@rrss-auto/domain';
 import { IUserRepository } from '../../../domain/repositories/IUserRepository';
@@ -9,11 +11,13 @@ import { PasswordHash } from '../../../domain/value-objects/PasswordHash';
 import { UserEmailAlreadyExistsException } from '../../../domain/exceptions/UserEmailAlreadyExistsException';
 import { RegisterUserCommand } from './RegisterUserCommand';
 
-export class RegisterUserUseCase implements IUseCase<RegisterUserCommand, string> {
+@Injectable()
+@CommandHandler(RegisterUserCommand)
+export class RegisterUserUseCase implements IUseCase<RegisterUserCommand, string>, ICommandHandler<RegisterUserCommand, string> {
   constructor(
-    private readonly userRepository: IUserRepository,
-    private readonly eventBus: IEventBus,
-    private readonly identifierProvider: IIdentifierProvider,
+    @Inject('IUserRepository') private readonly userRepository: IUserRepository,
+    @Inject('IEventBus') private readonly eventBus: IEventBus,
+    @Inject('IIdentifierProvider') private readonly identifierProvider: IIdentifierProvider,
   ) {}
 
   public async execute(command: RegisterUserCommand): Promise<string> {

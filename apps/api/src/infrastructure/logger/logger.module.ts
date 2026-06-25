@@ -6,7 +6,7 @@ import { ConsoleLogger, ILogger, LogLevel } from '@rrss-auto/logger';
   providers: [
     {
       provide: 'ILogger',
-      useValue: new ConsoleLogger(LogLevel.DEBUG),
+      useValue: new ConsoleLogger('debug' as any),
     },
   ],
   exports: ['ILogger'],

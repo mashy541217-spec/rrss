@@ -1,0 +1,7 @@
+export enum MediaStatus {
+  PENDING = 'PENDING',
+  UPLOADING = 'UPLOADING',
+  PROCESSING = 'PROCESSING',
+  READY = 'READY',
+  FAILED = 'FAILED',
+}

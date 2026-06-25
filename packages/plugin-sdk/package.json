@@ -1,0 +1,13 @@
+{
+  "name": "@rrss-auto/plugin-sdk",
+  "version": "1.0.0",
+  "description": "Plugin SDK for RRSS AUTO Bounded Context Extensions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

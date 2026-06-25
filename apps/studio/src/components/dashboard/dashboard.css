@@ -1,0 +1,173 @@
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.widget-col-span-2 {
+  grid-column: span 2;
+}
+
+.widget-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Worker Status Widget */
+.worker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.worker-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  padding: 12px;
+}
+
+.worker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.worker-plugin {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.worker-status {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.status-idle { background: var(--bg-secondary); color: var(--text-muted); }
+.status-busy { background: var(--status-info); color: white; animation: pulse 2s infinite; }
+.status-offline { background: var(--status-error); color: white; }
+
+.worker-id {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.worker-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metric-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.5s ease-in-out, background-color 0.5s ease;
+}
+
+.metric-val {
+  font-size: 0.75rem;
+  font-family: monospace;
+  width: 40px;
+  text-align: right;
+}
+
+/* System Health Widget */
+.health-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.health-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.health-service {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.health-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.health-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.status-healthy .health-dot { background: var(--status-success); box-shadow: 0 0 8px var(--status-success); }
+.status-degraded .health-dot { background: var(--status-warning); }
+.status-offline .health-dot { background: var(--status-error); }
+
+/* Queue Status Widget */
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.queue-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.queue-name {
+  font-weight: 500;
+}
+
+.queue-count {
+  font-family: monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.text-info { color: var(--status-info); }
+.text-warning { color: var(--status-warning); }
+.text-error { color: var(--status-error); }
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}

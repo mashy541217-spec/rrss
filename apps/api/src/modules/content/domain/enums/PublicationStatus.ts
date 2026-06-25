@@ -1,0 +1,8 @@
+export enum PublicationStatus {
+  PENDING = 'PENDING',
+  SCHEDULED = 'SCHEDULED',
+  PUBLISHING = 'PUBLISHING',
+  PUBLISHED = 'PUBLISHED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
+}

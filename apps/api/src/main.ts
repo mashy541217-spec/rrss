@@ -2,13 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './infrastructure/common/filters/GlobalExceptionFilter';
-import { LoggerService } from '@rrss-auto/logger';
+import { ILogger } from '@rrss-auto/logger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
-  const logger = app.get(LoggerService);
-  app.useLogger(logger);
+  const logger = app.get<ILogger>('ILogger');
+  app.useLogger(logger as any);
 
   app.useGlobalPipes(
     new ValidationPipe({

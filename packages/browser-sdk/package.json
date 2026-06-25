@@ -1,0 +1,16 @@
+{
+  "name": "@rrss-auto/browser-sdk",
+  "version": "1.0.0",
+  "description": "Generic foundation for Browser Automation (Playwright, Selenium, Puppeteer)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@rrss-auto/plugin-sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,6 @@
+export enum PlatformRole {
+  ADMIN = 'ADMIN',
+  STUDIO_USER = 'STUDIO_USER',
+  AUTOMATION_AGENT = 'AUTOMATION_AGENT',
+  WORKER_NODE = 'WORKER_NODE'
+}

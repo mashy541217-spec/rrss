@@ -1,0 +1,17 @@
+{
+  "name": "@rrss-auto/plugin-salesforce",
+  "version": "1.0.0",
+  "description": "Salesforce Enterprise Plugin for RRSS AUTO",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@rrss-auto/crm-sdk": "1.0.0",
+    "@rrss-auto/plugin-sdk": "1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

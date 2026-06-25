@@ -15,7 +15,10 @@
       "@rrss-auto/testing": ["packages/testing/src/index.ts"],
       "@rrss-auto/logger": ["packages/logger/src/index.ts"],
       "@rrss-auto/configuration": ["packages/configuration/src/index.ts"],
-      "@rrss-auto/observability": ["packages/observability/src/index.ts"]
+      "@rrss-auto/observability": ["packages/observability/src/index.ts"],
+      "@rrss-auto/plugin-sdk": ["packages/plugin-sdk/src/index.ts"],
+      "@rrss-auto/social-sdk": ["packages/social-sdk/src/index.ts"],
+      "@rrss-auto/plugin-instagram": ["packages/plugin-instagram/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "dist"]

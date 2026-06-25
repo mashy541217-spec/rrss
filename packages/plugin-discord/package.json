@@ -1,0 +1,17 @@
+{
+  "name": "@rrss-auto/plugin-discord",
+  "version": "1.0.0",
+  "description": "Discord Provider Plugin for Messaging SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@rrss-auto/plugin-sdk": "^1.0.0",
+    "@rrss-auto/messaging-sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

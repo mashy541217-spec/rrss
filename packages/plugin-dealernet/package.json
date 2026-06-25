@@ -1,0 +1,18 @@
+{
+  "name": "@rrss-auto/plugin-dealernet",
+  "version": "1.0.0",
+  "description": "First Enterprise Browser Automation Plugin orchestrating business logic via Browser SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@rrss-auto/plugin-sdk": "^1.0.0",
+    "@rrss-auto/browser-sdk": "^1.0.0",
+    "@rrss-auto/enterprise-web-toolkit": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

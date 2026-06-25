@@ -1,0 +1,13 @@
+{
+  "name": "@rrss-auto/desktop-sdk",
+  "version": "1.0.0",
+  "description": "Desktop Automation SDK for RRSS AUTO",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

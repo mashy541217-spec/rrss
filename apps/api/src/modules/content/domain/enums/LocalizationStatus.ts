@@ -1,0 +1,6 @@
+export enum LocalizationStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  NEEDS_REVIEW = 'NEEDS_REVIEW',
+}

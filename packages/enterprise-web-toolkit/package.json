@@ -1,0 +1,16 @@
+{
+  "name": "@rrss-auto/enterprise-web-toolkit",
+  "version": "1.0.0",
+  "description": "Shared generic workflows and POM foundations for Enterprise Web Plugins",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@rrss-auto/browser-sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

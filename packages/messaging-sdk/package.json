@@ -1,0 +1,16 @@
+{
+  "name": "@rrss-auto/messaging-sdk",
+  "version": "1.0.0",
+  "description": "Messaging SDK for generic provider abstractions",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@rrss-auto/plugin-sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

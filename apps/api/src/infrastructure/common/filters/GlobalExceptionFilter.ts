@@ -1,11 +1,11 @@
-import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
+import { ExceptionFilter, Catch, ArgumentsHost, HttpException, HttpStatus, Inject } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { DomainException } from '@rrss-auto/domain';
-import { LoggerService } from '@rrss-auto/logger';
+import { ILogger } from '@rrss-auto/logger';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {}
+  constructor(@Inject('ILogger') private readonly logger: ILogger) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

@@ -1,0 +1,19 @@
+{
+  "name": "@rrss-auto/browser-engine-playwright",
+  "version": "1.0.0",
+  "description": "Playwright implementation of the Browser Engine SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@rrss-auto/plugin-sdk": "^1.0.0",
+    "@rrss-auto/browser-sdk": "^1.0.0",
+    "@rrss-auto/browser-engine-sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.40.0",
+    "typescript": "^5.3.3"
+  }
+}

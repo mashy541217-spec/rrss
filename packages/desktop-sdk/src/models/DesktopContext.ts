@@ -1,0 +1,5 @@
+export enum DesktopContext {
+  FOREGROUND = 'FOREGROUND',
+  BACKGROUND = 'BACKGROUND',
+  VIRTUAL_DESKTOP = 'VIRTUAL_DESKTOP'
+}
