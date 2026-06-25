@@ -8,7 +8,7 @@ export const OnboardingWizard: React.FC = () => {
   const {
     currentStep, organizationName, workspaceName, workspaceSlug,
     nextStep, prevStep, setOrganizationName, createWorkspace, addBusiness,
-    businesses, socialAccounts, completeOnboarding
+    businesses, socialAccounts, completeOnboarding, t
   } = useWorkspaceStore();
 
   // Step 2 inputs
@@ -63,12 +63,12 @@ export const OnboardingWizard: React.FC = () => {
   };
 
   const stepsList = [
-    { num: 1, name: 'Organization', icon: <Building2 size={16} /> },
-    { num: 2, name: 'Workspace', icon: <Layers size={16} /> },
-    { num: 3, name: 'Business Unit', icon: <Briefcase size={16} /> },
-    { num: 4, name: 'Social Channels', icon: <Share2 size={16} /> },
-    { num: 5, name: 'First Automation', icon: <Play size={16} /> },
-    { num: 6, name: 'Launch Portal', icon: <CheckCircle2 size={16} /> }
+    { num: 1, name: t.wizard.orgLabel.split(' ')[0], icon: <Building2 size={16} /> },
+    { num: 2, name: t.navigation.activeWorkspace.split(' ')[0], icon: <Layers size={16} /> },
+    { num: 3, name: t.navigation.businesses, icon: <Briefcase size={16} /> },
+    { num: 4, name: t.navigation.social.split(' ')[0], icon: <Share2 size={16} /> },
+    { num: 5, name: t.navigation.automation.split(' ')[0], icon: <Play size={16} /> },
+    { num: 6, name: t.wizard.launch.split(' ')[0], icon: <CheckCircle2 size={16} /> }
   ];
 
   return (
@@ -96,22 +96,22 @@ export const OnboardingWizard: React.FC = () => {
       </div>
 
       {/* Steps contents container */}
-      <div className="glass-panel" style={{ borderRadius: '20px', padding: '40px', minHeight: '400px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+      <div className="glass-panel" style={{ borderRadius: '20px', padding: '40px', minHeight: '400px', display: 'flex', flexDirection: 'column', justifyItems: 'center', justifyContent: 'space-between' }}>
         
         {/* STEP 1: ORGANIZATION */}
         {currentStep === 1 && (
           <form onSubmit={handleStep1Submit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>Create Your Organization</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>An organization represents your master account container holding billing, members, and portals.</p>
+              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.orgTitle}</h2>
+              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.orgDesc}</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label>Organization Legal Name</label>
+              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.orgLabel}</label>
               <input
                 type="text"
                 required
                 className="glass-input"
-                placeholder="e.g. Acme Corporation Ltd."
+                placeholder={t.wizard.orgPlaceholder}
                 value={organizationName}
                 onChange={(e) => setOrganizationName(e.target.value)}
                 style={{ fontSize: '15px', padding: '12px' }}
@@ -119,7 +119,7 @@ export const OnboardingWizard: React.FC = () => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
               <button type="submit" className="btn-primary">
-                Next Step <ChevronRight size={16} />
+                {t.wizard.next} <ChevronRight size={16} />
               </button>
             </div>
           </form>
@@ -129,24 +129,24 @@ export const OnboardingWizard: React.FC = () => {
         {currentStep === 2 && (
           <form onSubmit={handleStep2Submit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>Create Workspace</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>Workspaces partition your teams, connected profiles, campaigns, and anti-detection policies.</p>
+              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.wsTitle}</h2>
+              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.wsDesc}</p>
             </div>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label>Workspace Name</label>
-                <input type="text" required placeholder="e.g. Enterprise Global Marketing" className="glass-input" value={wsName} onChange={(e) => setWsName(e.target.value)} />
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.wsLabel}</label>
+                <input type="text" required placeholder={t.wizard.wsPlaceholder} className="glass-input" value={wsName} onChange={(e) => setWsName(e.target.value)} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label>Workspace Slug (Unique identifier)</label>
-                <input type="text" required placeholder="e.g. enterprise-global" className="glass-input" value={wsSlug} onChange={(e) => setWsSlug(e.target.value)} />
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.wsSlugLabel}</label>
+                <input type="text" required placeholder={t.wizard.wsSlugPlaceholder} className="glass-input" value={wsSlug} onChange={(e) => setWsSlug(e.target.value)} />
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label>Timezone</label>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>Timezone</label>
                 <select className="glass-input">
                   <option>America/New_York (EST)</option>
                   <option>Europe/London (GMT)</option>
@@ -154,10 +154,10 @@ export const OnboardingWizard: React.FC = () => {
                 </select>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label>Language</label>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>Language / Idioma</label>
                 <select className="glass-input">
-                  <option>Spanish (es-ES)</option>
                   <option>English (en-US)</option>
+                  <option>Spanish (es-ES)</option>
                   <option>Portuguese (pt-BR)</option>
                 </select>
               </div>
@@ -165,26 +165,26 @@ export const OnboardingWizard: React.FC = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label>Country</label>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>Country</label>
                 <input type="text" placeholder="e.g. Chile" className="glass-input" value={country} onChange={(e) => setCountry(e.target.value)} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label>Business Category</label>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busCatLabel}</label>
                 <input type="text" placeholder="e.g. Retail, Agency" className="glass-input" value={category} onChange={(e) => setCategory(e.target.value)} />
               </div>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label>Description</label>
+              <label style={{ fontWeight: 600, fontSize: '13px' }}>Description</label>
               <textarea placeholder="Tell us about the scope of this workspace..." className="glass-input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: 'none' }} />
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
               <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> Back
+                <ChevronLeft size={16} /> {t.wizard.prev}
               </button>
               <button type="submit" className="btn-primary">
-                Create Workspace <ChevronRight size={16} />
+                {t.wizard.next} <ChevronRight size={16} />
               </button>
             </div>
           </form>
@@ -194,24 +194,24 @@ export const OnboardingWizard: React.FC = () => {
         {currentStep === 3 && (
           <form onSubmit={handleStep3Submit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>Register Initial Business</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>Each workspace holds one or more business units containing their own isolated campaigns, social profiles, and reports.</p>
+              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.busTitle}</h2>
+              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.busDesc}</p>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label>Business Name</label>
+              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busLabel}</label>
               <input
                 type="text"
                 required
                 className="glass-input"
-                placeholder="e.g. Nike Chile Division"
+                placeholder={t.wizard.busPlaceholder}
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
               />
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label>Business Market Category</label>
+              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busCatLabel}</label>
               <select value={busCategory} onChange={(e) => setBusCategory(e.target.value)} className="glass-input">
                 <option value="E-Commerce & Retail">E-Commerce & Retail</option>
                 <option value="Health & Beauty">Health & Beauty</option>
@@ -222,10 +222,10 @@ export const OnboardingWizard: React.FC = () => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
               <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> Back
+                <ChevronLeft size={16} /> {t.wizard.prev}
               </button>
               <button type="submit" className="btn-primary">
-                Register Business <ChevronRight size={16} />
+                {t.wizard.next} <ChevronRight size={16} />
               </button>
             </div>
           </form>
@@ -235,15 +235,15 @@ export const OnboardingWizard: React.FC = () => {
         {currentStep === 4 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>Connect Social Networks</h2>
-              <p style={{ color: 'var(--color-text-muted)', marginBottom: '10px' }}>Connect the profiles you wish to automate. The Isolation Engine automatically allocates proxies and unique browser identities.</p>
+              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.socialTitle}</h2>
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: '10px' }}>{t.wizard.socialDesc}</p>
             </div>
 
             <SocialConnectionCenter />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
               <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> Back
+                <ChevronLeft size={16} /> {t.wizard.prev}
               </button>
               <button
                 type="button"
@@ -252,7 +252,7 @@ export const OnboardingWizard: React.FC = () => {
                 disabled={socialAccounts.length === 0}
                 style={{ opacity: socialAccounts.length === 0 ? 0.5 : 1 }}
               >
-                Next Step <ChevronRight size={16} />
+                {t.wizard.next} <ChevronRight size={16} />
               </button>
             </div>
           </div>
@@ -262,8 +262,8 @@ export const OnboardingWizard: React.FC = () => {
         {currentStep === 5 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>Launch First Automation</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>Choose an automation template to bootstrap your new Workspace. The workflow execution engine registers the isolation runtime automatically.</p>
+              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.autoTitle}</h2>
+              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.autoDesc}</p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -271,7 +271,7 @@ export const OnboardingWizard: React.FC = () => {
                 onClick={() => setSelectedTemplate('instagram-auto')}
                 className="glass-card"
                 style={{
-                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '16px',
+                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px',
                   borderColor: selectedTemplate === 'instagram-auto' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: selectedTemplate === 'instagram-auto' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255,255,255,0.01)'
                 }}
@@ -289,7 +289,7 @@ export const OnboardingWizard: React.FC = () => {
                 onClick={() => setSelectedTemplate('whatsapp-lead')}
                 className="glass-card"
                 style={{
-                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '16px',
+                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px',
                   borderColor: selectedTemplate === 'whatsapp-lead' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: selectedTemplate === 'whatsapp-lead' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255,255,255,0.01)'
                 }}
@@ -307,7 +307,7 @@ export const OnboardingWizard: React.FC = () => {
                 onClick={() => setSelectedTemplate('multi-cross')}
                 className="glass-card"
                 style={{
-                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyItems: 'center', gap: '16px',
+                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px',
                   borderColor: selectedTemplate === 'multi-cross' ? 'var(--color-primary)' : 'var(--color-border)',
                   background: selectedTemplate === 'multi-cross' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255,255,255,0.01)'
                 }}
@@ -324,10 +324,10 @@ export const OnboardingWizard: React.FC = () => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
               <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> Back
+                <ChevronLeft size={16} /> {t.wizard.prev}
               </button>
               <button type="button" onClick={nextStep} className="btn-primary">
-                Next Step <ChevronRight size={16} />
+                {t.wizard.next} <ChevronRight size={16} />
               </button>
             </div>
           </div>
@@ -341,9 +341,9 @@ export const OnboardingWizard: React.FC = () => {
             </div>
 
             <div>
-              <h2 style={{ fontSize: '28px', marginBottom: '8px' }}>Your Workspace is Ready!</h2>
+              <h2 style={{ fontSize: '28px', marginBottom: '8px' }}>{t.wizard.launchTitle}</h2>
               <p style={{ color: 'var(--color-text-muted)', maxWidth: '500px', margin: '0 auto' }}>
-                We have registered your organization <strong>{organizationName}</strong>, created your isolated workspace <strong>{workspaceName}</strong>, and connection profiles are live.
+                {t.wizard.launchDesc}
               </p>
             </div>
 
@@ -356,10 +356,10 @@ export const OnboardingWizard: React.FC = () => {
 
             <div style={{ display: 'flex', gap: '16px', marginTop: '20px' }}>
               <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> Review
+                <ChevronLeft size={16} /> {t.wizard.prev}
               </button>
               <button type="button" onClick={handleLaunch} className="btn-primary" style={{ padding: '12px 30px', fontSize: '15px' }}>
-                Launch Workspace Portal <ChevronRight size={16} />
+                {t.wizard.launchBtn} <ChevronRight size={16} />
               </button>
             </div>
           </div>

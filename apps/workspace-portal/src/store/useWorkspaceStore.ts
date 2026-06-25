@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { translations } from './translations';
+import type { LocaleType, Translations } from './translations';
 
 export interface BusinessInfo {
   id: string;
@@ -31,7 +33,7 @@ export interface ProvisioningStatusInfo {
 export interface WorkspaceStoreState {
   isOnboarded: boolean;
   currentStep: number;
-  activeModule: 'dashboard' | 'businesses' | 'workspaces' | 'assistant';
+  activeModule: 'dashboard' | 'social' | 'businesses' | 'automation' | 'calendar' | 'media' | 'analytics' | 'assistant' | 'marketplace' | 'reports' | 'settings';
   organizationName: string;
   workspaceId: string;
   workspaceName: string;
@@ -42,6 +44,10 @@ export interface WorkspaceStoreState {
   socialAccounts: SocialAccountInfo[];
   notifications: Array<{ id: string; message: string; type: 'success' | 'info' | 'error' }>;
   activeProvisioning: ProvisioningStatusInfo | null;
+  language: LocaleType;
+  theme: 'dark' | 'light';
+  brandColor: string;
+  t: Translations;
   
   nextStep: () => void;
   prevStep: () => void;
@@ -53,9 +59,12 @@ export interface WorkspaceStoreState {
   connectNonOAuthAccount: (provider: string, accountName: string, fields: Record<string, string>) => Promise<void>;
   addNotification: (message: string, type: 'success' | 'info' | 'error') => void;
   clearNotification: (id: string) => void;
-  setActiveModule: (module: 'dashboard' | 'businesses' | 'workspaces' | 'assistant') => void;
+  setActiveModule: (module: 'dashboard' | 'social' | 'businesses' | 'automation' | 'calendar' | 'media' | 'analytics' | 'assistant' | 'marketplace' | 'reports' | 'settings') => void;
   completeOnboarding: () => void;
   clearActiveProvisioning: () => void;
+  setLanguage: (lang: LocaleType) => void;
+  setTheme: (theme: 'dark' | 'light') => void;
+  setBrandColor: (color: string) => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
@@ -72,6 +81,10 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
   socialAccounts: [],
   notifications: [],
   activeProvisioning: null,
+  language: 'en',
+  theme: 'dark',
+  brandColor: '#8b5cf6',
+  t: translations['en'],
 
   nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6) })),
   prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
@@ -476,8 +489,6 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
     }
   },
 
-  clearActiveProvisioning: () => set({ activeProvisioning: null }),
-
   addNotification: (message, type) => {
     const id = `notif-${Date.now()}`;
     set((state) => ({
@@ -490,5 +501,55 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
   })),
 
   setActiveModule: (module) => set({ activeModule: module }),
-  completeOnboarding: () => set({ isOnboarded: true })
+  completeOnboarding: () => set({ isOnboarded: true }),
+  clearActiveProvisioning: () => set({ activeProvisioning: null }),
+  setLanguage: (lang) => {
+    document.documentElement.lang = lang;
+    set({ language: lang, t: translations[lang] });
+  },
+  setTheme: (theme) => {
+    const root = document.documentElement;
+    if (theme === 'light') {
+      root.style.setProperty('--bg-primary', '#f8fafc');
+      root.style.setProperty('--bg-secondary', '#ffffff');
+      root.style.setProperty('--color-text', '#0f172a');
+      root.style.setProperty('--color-text-muted', '#64748b');
+      root.style.setProperty('--color-border', 'rgba(0, 0, 0, 0.08)');
+      root.style.setProperty('--glass-bg', 'rgba(255, 255, 255, 0.7)');
+      root.style.setProperty('--glass-border', 'rgba(0, 0, 0, 0.06)');
+    } else {
+      root.style.setProperty('--bg-primary', '#090d16');
+      root.style.setProperty('--bg-secondary', '#0f172a');
+      root.style.setProperty('--color-text', '#f8fafc');
+      root.style.setProperty('--color-text-muted', '#94a3b8');
+      root.style.setProperty('--color-border', 'rgba(255, 255, 255, 0.08)');
+      root.style.setProperty('--glass-bg', 'rgba(15, 23, 42, 0.65)');
+      root.style.setProperty('--glass-border', 'rgba(255, 255, 255, 0.06)');
+    }
+    set({ theme });
+  },
+  setBrandColor: (color) => {
+    const root = document.documentElement;
+    root.style.setProperty('--color-primary', color);
+    root.style.setProperty('--color-primary-hover', adjustColorBrightness(color, 20));
+    root.style.setProperty('--glass-glow', `${color}26`);
+    root.style.setProperty('--glow-primary', `${color}66`);
+    set({ brandColor: color });
+  }
 }));
+
+function adjustColorBrightness(hex: string, percent: number): string {
+  let R = parseInt(hex.substring(1, 3), 16);
+  let G = parseInt(hex.substring(3, 5), 16);
+  let B = parseInt(hex.substring(5, 7), 16);
+
+  R = Math.min(255, Math.max(0, R + percent));
+  G = Math.min(255, Math.max(0, G + percent));
+  B = Math.min(255, Math.max(0, B + percent));
+
+  const rHex = R.toString(16).padStart(2, '0');
+  const gHex = G.toString(16).padStart(2, '0');
+  const bHex = B.toString(16).padStart(2, '0');
+
+  return `#${rHex}${gHex}${bHex}`;
+}
