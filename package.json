@@ -24,6 +24,7 @@
     "build:enterprise-web-toolkit": "npm run build --workspace=packages/enterprise-web-toolkit",
     "build:plugin-dealernet": "npm run build --workspace=packages/plugin-dealernet",
     "build:studio": "npm run build --workspace=apps/studio",
+    "build:admin-web": "npm run build --workspace=apps/admin-web",
     "build:social-sdk": "npm run build --workspace=packages/social-sdk",
     "build:messaging-sdk": "npm run build --workspace=packages/messaging-sdk",
     "build:domain": "npm run build --workspace=packages/domain",

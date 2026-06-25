@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-worker
+  labels:
+    app: rrss-auto-worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      app: rrss-auto-worker
+  template:
+    metadata:
+      labels:
+        app: rrss-auto-worker
+    spec:
+      containers:
+        - name: worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag }}"
+          env:
+            - name: REDIS_URL
+              value: "redis://:{{ .Values.redis.password }}@{{ .Release.Name }}-redis:6379"
+            - name: DATABASE_URL
+              value: "postgresql://postgres:{{ .Values.postgres.password }}@{{ .Release.Name }}-postgres:5432/rrss"
+            - name: ROLE
+              value: "WORKER"
+          resources:
+            {{- toYaml .Values.worker.resources | nindent 12 }}

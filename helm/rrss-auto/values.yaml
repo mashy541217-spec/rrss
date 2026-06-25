@@ -1,0 +1,33 @@
+api:
+  replicaCount: 2
+  image:
+    repository: rrss-auto/api
+    tag: "latest"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 512Mi
+
+worker:
+  replicaCount: 3
+  image:
+    repository: rrss-auto/worker
+    tag: "latest"
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+
+redis:
+  enabled: true
+  password: "changeme"
+
+postgres:
+  enabled: true
+  password: "changeme"
