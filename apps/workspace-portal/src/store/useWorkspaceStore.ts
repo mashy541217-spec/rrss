@@ -7,6 +7,28 @@ export interface BusinessInfo {
   name: string;
   category: string;
   socialAccountsCount: number;
+  logoUrl?: string;
+  brandColor?: string;
+  emailBrand?: any;
+}
+
+export type BusinessTab = 'dashboard' | 'channels' | 'campaigns' | 'media' | 'team' | 'settings' | 'health' | 'notifications';
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  status: 'Active' | 'Pending';
+  avatarInitials: string;
+}
+
+export interface BusinessNotification {
+  id: string;
+  businessId: string;
+  message: string;
+  type: 'success' | 'info' | 'error' | 'warning';
+  timestamp: string;
 }
 
 export interface SocialAccountInfo {
@@ -18,6 +40,7 @@ export interface SocialAccountInfo {
   proxy: string;
   isolationScore: number;
   reason: string;
+  businessId?: string;
 }
 
 export interface ProvisioningStatusInfo {
@@ -48,13 +71,19 @@ export interface WorkspaceStoreState {
   theme: 'dark' | 'light';
   brandColor: string;
   t: Translations;
+  activeBusinessId: string;
+  businessTemplate: string;
+  activeBusinessTab: BusinessTab;
+  businessTeam: Record<string, TeamMember[]>;
+  businessNotifications: Record<string, BusinessNotification[]>;
+  businessHealthScore: Record<string, number>;
   
   nextStep: () => void;
   prevStep: () => void;
   setStep: (step: number) => void;
   setOrganizationName: (name: string) => void;
   createWorkspace: (data: { name: string; slug: string; timezone: string; locale: string }) => Promise<string>;
-  addBusiness: (name: string, category: string) => void;
+  addBusiness: (name: string, category: string) => Promise<void>;
   connectOAuthAccount: (provider: string, accountName: string) => Promise<void>;
   connectNonOAuthAccount: (provider: string, accountName: string, fields: Record<string, string>) => Promise<void>;
   addNotification: (message: string, type: 'success' | 'info' | 'error') => void;
@@ -65,6 +94,13 @@ export interface WorkspaceStoreState {
   setLanguage: (lang: LocaleType) => void;
   setTheme: (theme: 'dark' | 'light') => void;
   setBrandColor: (color: string) => void;
+  setActiveBusinessId: (id: string) => void;
+  setBusinessTemplate: (template: string) => void;
+  setActiveBusinessTab: (tab: BusinessTab) => void;
+  updateBusiness: (id: string, data: { name?: string; logoUrl?: string; brandColor?: string; emailBrand?: any }) => Promise<void>;
+  addTeamMember: (businessId: string, member: TeamMember) => void;
+  removeTeamMember: (businessId: string, memberId: string) => void;
+  addBusinessNotification: (notification: Omit<BusinessNotification, 'id' | 'timestamp'>) => void;
 }
 
 export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
@@ -85,6 +121,12 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
   theme: 'dark',
   brandColor: '#8b5cf6',
   t: translations['en'],
+  activeBusinessId: '',
+  businessTemplate: '',
+  activeBusinessTab: 'dashboard',
+  businessTeam: {},
+  businessNotifications: {},
+  businessHealthScore: {},
 
   nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 6) })),
   prevStep: () => set((state) => ({ currentStep: Math.max(state.currentStep - 1, 1) })),
@@ -145,17 +187,75 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
     }
   },
 
-  addBusiness: (name, category) => {
-    const newBus: BusinessInfo = {
-      id: `bus-${Date.now()}`,
-      name,
-      category,
-      socialAccountsCount: 0
-    };
-    set((state) => ({
-      businesses: [...state.businesses, newBus]
-    }));
-    get().addNotification(`Business Unit "${name}" registered successfully.`, 'success');
+  addBusiness: async (name, category) => {
+    const wsId = get().workspaceId || 'ws-default';
+    try {
+      const response = await fetch(`http://localhost:3000/workspaces/${wsId}/businesses`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, category })
+      });
+      if (response.ok) {
+        const created = await response.json();
+        set((state) => {
+          const nextBusinesses = [...state.businesses, {
+            id: created.id,
+            name: created.name,
+            category: created.category,
+            socialAccountsCount: 0,
+            logoUrl: created.logoUrl || undefined,
+            brandColor: created.brandColor || undefined,
+            emailBrand: created.emailBrand || undefined
+          }];
+          return {
+            businesses: nextBusinesses,
+            activeBusinessId: state.activeBusinessId || created.id
+          };
+        });
+        get().addNotification(`Business Unit "${name}" registered successfully on backend.`, 'success');
+      }
+    } catch (err) {
+      console.warn('Backend business API offline, fallback to local registration:', err);
+      const tempId = `bus-${Date.now()}`;
+      set((state) => ({
+        businesses: [...state.businesses, { id: tempId, name, category, socialAccountsCount: 0, logoUrl: undefined, brandColor: '#8b5cf6', emailBrand: {} }],
+        activeBusinessId: state.activeBusinessId || tempId
+      }));
+      get().addNotification(`Registered Business "${name}" locally.`, 'info');
+    }
+  },
+
+  updateBusiness: async (id, data) => {
+    try {
+      const response = await fetch(`http://localhost:3000/businesses/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (response.ok) {
+        const updated = await response.json();
+        set((state) => ({
+          businesses: state.businesses.map(b => b.id === id ? {
+            ...b,
+            name: updated.name,
+            category: updated.category,
+            logoUrl: updated.logoUrl || undefined,
+            brandColor: updated.brandColor || undefined,
+            emailBrand: updated.emailBrand || undefined
+          } : b)
+        }));
+        get().addNotification(`Business settings updated successfully.`, 'success');
+      }
+    } catch (err) {
+      console.warn('Backend update business API offline, update locally:', err);
+      set((state) => ({
+        businesses: state.businesses.map(b => b.id === id ? {
+          ...b,
+          ...data
+        } : b)
+      }));
+      get().addNotification(`Updated Business settings locally.`, 'info');
+    }
   },
 
   connectOAuthAccount: async (provider, accountName) => {
@@ -225,7 +325,8 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
       status: 'PROCESSING',
       proxy: isolationDecision.proxyAssigned,
       isolationScore: isolationDecision.isolationScore,
-      reason: isolationDecision.reason
+      reason: isolationDecision.reason,
+      businessId: get().activeBusinessId || undefined
     };
 
     set((state) => ({
@@ -378,7 +479,8 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
       status: 'PROCESSING',
       proxy: isolationDecision.proxyAssigned,
       isolationScore: isolationDecision.isolationScore,
-      reason: isolationDecision.reason
+      reason: isolationDecision.reason,
+      businessId: get().activeBusinessId || undefined
     };
 
     set((state) => ({
@@ -502,6 +604,26 @@ export const useWorkspaceStore = create<WorkspaceStoreState>((set, get) => ({
 
   setActiveModule: (module) => set({ activeModule: module }),
   completeOnboarding: () => set({ isOnboarded: true }),
+  setActiveBusinessId: (id) => set({ activeBusinessId: id }),
+  setBusinessTemplate: (template) => set({ businessTemplate: template }),
+  setActiveBusinessTab: (tab) => set({ activeBusinessTab: tab }),
+  addTeamMember: (businessId, member) => set((state) => {
+    const team = state.businessTeam[businessId] || [];
+    return { businessTeam: { ...state.businessTeam, [businessId]: [...team, member] } };
+  }),
+  removeTeamMember: (businessId, memberId) => set((state) => {
+    const team = state.businessTeam[businessId] || [];
+    return { businessTeam: { ...state.businessTeam, [businessId]: team.filter(m => m.id !== memberId) } };
+  }),
+  addBusinessNotification: (notification) => set((state) => {
+    const notifs = state.businessNotifications[notification.businessId] || [];
+    const newNotif: BusinessNotification = {
+      ...notification,
+      id: `bnotif-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    };
+    return { businessNotifications: { ...state.businessNotifications, [notification.businessId]: [newNotif, ...notifs] } };
+  }),
   clearActiveProvisioning: () => set({ activeProvisioning: null }),
   setLanguage: (lang) => {
     document.documentElement.lang = lang;

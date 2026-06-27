@@ -11,7 +11,7 @@ interface ProviderCard {
 }
 
 export const SocialConnectionCenter: React.FC = () => {
-  const { socialAccounts, connectOAuthAccount, connectNonOAuthAccount, activeProvisioning, clearActiveProvisioning } = useWorkspaceStore();
+  const { socialAccounts, connectOAuthAccount, connectNonOAuthAccount, activeProvisioning, clearActiveProvisioning, businessTemplate } = useWorkspaceStore();
   
   const [selectedProvider, setSelectedProvider] = useState<ProviderCard | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -77,11 +77,32 @@ export const SocialConnectionCenter: React.FC = () => {
     setModalOpen(false);
   };
 
+  const recommendationMap: Record<string, string[]> = {
+    'marketing-agency': ['instagram', 'facebook', 'threads', 'tiktok', 'google_business'],
+    'ecommerce': ['instagram', 'facebook', 'shopify', 'woocommerce', 'google_ads'],
+    'real-estate': ['instagram', 'facebook', 'google_business'],
+    'tech-saas': ['telegram', 'sap', 'salesforce']
+  };
+
+  const recommendedIds = businessTemplate ? (recommendationMap[businessTemplate] || []) : [];
+
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', maxHeight: '350px', overflowY: 'auto', padding: '8px' }}>
         {providers.map((prov) => {
           const isConnected = socialAccounts.some(a => a.provider.toLowerCase() === prov.id.toLowerCase());
+          const isRecommended = recommendedIds.includes(prov.id);
+          
+          let cardBg = 'transparent';
+          let shadowStyle = 'none';
+
+          if (isConnected) {
+            // green connected
+          } else if (isRecommended) {
+            cardBg = 'rgba(139, 92, 246, 0.03)';
+            shadowStyle = '0 0 10px rgba(139, 92, 246, 0.1)';
+          }
+
           return (
             <div
               key={prov.id}
@@ -89,21 +110,31 @@ export const SocialConnectionCenter: React.FC = () => {
               className="glass-card"
               style={{
                 padding: '16px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '10px',
-                borderColor: isConnected ? 'var(--color-success)' : 'var(--color-border)',
+                borderColor: isConnected ? 'var(--color-success)' : (isRecommended ? 'var(--color-primary)' : 'var(--color-border)'),
                 borderWidth: isConnected ? '2px' : '1px',
-                position: 'relative'
+                background: cardBg,
+                boxShadow: shadowStyle,
+                position: 'relative',
+                transition: 'all 0.2s ease'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '24px' }}>{prov.icon}</span>
-                {isConnected && (
+                {isConnected ? (
                   <span style={{
                     fontSize: '11px', background: 'rgba(16,185,129,0.15)', color: 'var(--color-success)',
                     padding: '2px 8px', borderRadius: '4px', fontWeight: 600
                   }}>
                     Connected
                   </span>
-                )}
+                ) : isRecommended ? (
+                  <span style={{
+                    fontSize: '10px', background: 'rgba(139,92,246,0.15)', color: 'var(--color-primary)',
+                    padding: '2px 8px', borderRadius: '4px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '2px'
+                  }}>
+                    ★ Recommended
+                  </span>
+                ) : null}
               </div>
               <div>
                 <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '2px' }}>{prov.name}</h4>

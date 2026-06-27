@@ -78,6 +78,46 @@ export interface Translations {
     langLabel: string;
     colorLabel: string;
   };
+  business: {
+    tabs: {
+      dashboard: string;
+      channels: string;
+      campaigns: string;
+      media: string;
+      team: string;
+      settings: string;
+      health: string;
+      notifications: string;
+    };
+    kpis: {
+      followers: string;
+      reach: string;
+      engagement: string;
+      posts: string;
+      campaigns: string;
+      automations: string;
+      leads: string;
+      timeSaved: string;
+    };
+    roles: {
+      owner: string;
+      manager: string;
+      marketing: string;
+      creator: string;
+      sales: string;
+      support: string;
+      analyst: string;
+      viewer: string;
+      guest: string;
+    };
+    health: {
+      score: string;
+      channels: string;
+      automations: string;
+      team: string;
+      branding: string;
+    };
+  };
 }
 
 export const translations: Record<LocaleType, Translations> = {
@@ -158,6 +198,46 @@ export const translations: Record<LocaleType, Translations> = {
       themeLabel: "Theme Mode",
       langLabel: "Language",
       colorLabel: "Brand Primary Color"
+    },
+    business: {
+      tabs: {
+        dashboard: "Dashboard",
+        channels: "Channels",
+        campaigns: "Campaigns",
+        media: "Media Center",
+        team: "Team",
+        settings: "Settings",
+        health: "Health",
+        notifications: "Notifications"
+      },
+      kpis: {
+        followers: "Followers",
+        reach: "Reach",
+        engagement: "Engagement",
+        posts: "Posts",
+        campaigns: "Campaigns",
+        automations: "Automations",
+        leads: "Leads",
+        timeSaved: "Time Saved"
+      },
+      roles: {
+        owner: "Owner",
+        manager: "Manager",
+        marketing: "Marketing",
+        creator: "Content Creator",
+        sales: "Sales",
+        support: "Support",
+        analyst: "Analyst",
+        viewer: "Viewer",
+        guest: "Guest"
+      },
+      health: {
+        score: "Health Score",
+        channels: "Connected Channels",
+        automations: "Active Automations",
+        team: "Team Members",
+        branding: "Custom Branding"
+      }
     }
   },
   es: {
@@ -237,6 +317,46 @@ export const translations: Record<LocaleType, Translations> = {
       themeLabel: "Modo de Tema",
       langLabel: "Idioma",
       colorLabel: "Color Primario de Marca"
+    },
+    business: {
+      tabs: {
+        dashboard: "Panel",
+        channels: "Canales",
+        campaigns: "Campañas",
+        media: "Centro de Medios",
+        team: "Equipo",
+        settings: "Ajustes",
+        health: "Salud",
+        notifications: "Notificaciones"
+      },
+      kpis: {
+        followers: "Seguidores",
+        reach: "Alcance",
+        engagement: "Interacción",
+        posts: "Publicaciones",
+        campaigns: "Campañas",
+        automations: "Automatizaciones",
+        leads: "Clientes Potenciales",
+        timeSaved: "Tiempo Ahorrado"
+      },
+      roles: {
+        owner: "Propietario",
+        manager: "Gerente",
+        marketing: "Marketing",
+        creator: "Creador de Contenido",
+        sales: "Ventas",
+        support: "Soporte",
+        analyst: "Analista",
+        viewer: "Espectador",
+        guest: "Invitado"
+      },
+      health: {
+        score: "Puntuación de Salud",
+        channels: "Canales Conectados",
+        automations: "Automatizaciones Activas",
+        team: "Miembros del Equipo",
+        branding: "Marca Personalizada"
+      }
     }
   }
 };

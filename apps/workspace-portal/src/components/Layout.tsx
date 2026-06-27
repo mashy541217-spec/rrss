@@ -14,7 +14,8 @@ import {
 export const Layout: React.FC = () => {
   const {
     activeModule, setActiveModule, workspaceName, timezone,
-    notifications, clearNotification, language, setLanguage, theme, setTheme, brandColor, setBrandColor, t
+    notifications, clearNotification, language, setLanguage, theme, setTheme, brandColor, setBrandColor, t,
+    businesses, activeBusinessId, setActiveBusinessId
   } = useWorkspaceStore();
 
   const navigationItems = [
@@ -141,7 +142,7 @@ export const Layout: React.FC = () => {
               Discover integration plugins, custom automation triggers, prompt guidelines, and white label assets.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px', marginTop: '20px' }}>
-              {['SAP Integration', 'Salesforce CRM Sync', 'WooCommerce Auto-Blast', 'DealerNet API Bridge'].map(name => (
+              {['SAP Integration', 'Salesforce CRM Sync', 'WooCommerce Auto-Blast'].map(name => (
                 <div className="glass-card" key={name} style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ fontSize: '15px', fontWeight: 600 }}>{name}</div>
                   <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Certified Provider</div>
@@ -276,10 +277,31 @@ export const Layout: React.FC = () => {
         </div>
 
         {/* Tenant selection details panel */}
-        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid var(--color-border)' }}>
-          <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 600 }}>{t.navigation.activeWorkspace}</div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
-            {workspaceName || 'Default Workspace'}
+        <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', borderBottom: '1px solid var(--color-border)' }}>
+          <div>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 600 }}>{t.navigation.activeWorkspace}</div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: '#fff', padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+              {workspaceName || 'Default Workspace'}
+            </div>
+          </div>
+          
+          {/* Business Switcher */}
+          <div>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '4px' }}>Active Business</div>
+            <select 
+              value={activeBusinessId} 
+              onChange={(e) => setActiveBusinessId(e.target.value)}
+              className="glass-input" 
+              style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid var(--color-primary)', background: 'var(--glass-glow)', color: 'var(--color-primary)', fontWeight: 600 }}
+            >
+              {businesses.length === 0 ? (
+                <option value="">No Business Found</option>
+              ) : (
+                businesses.map(bus => (
+                  <option key={bus.id} value={bus.id} style={{ color: '#000' }}>{bus.name}</option>
+                ))
+              )}
+            </select>
           </div>
         </div>
 

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
+import { Building2, Layers, Briefcase, Share2, Play, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Home, Cpu, Store, Hotel, Stethoscope, Scale, GraduationCap, Car, Mic, UserCircle, Box } from 'lucide-react';
 import { useWorkspaceStore } from '../store/useWorkspaceStore';
 import { SocialConnectionCenter } from './SocialConnectionCenter';
-import { Building2, Layers, Briefcase, Share2, Play, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export const OnboardingWizard: React.FC = () => {
   const {
     currentStep, organizationName, workspaceName, workspaceSlug,
     nextStep, prevStep, setOrganizationName, createWorkspace, addBusiness,
-    businesses, socialAccounts, completeOnboarding, t
+    businesses, socialAccounts, completeOnboarding, t,
+    businessTemplate, setBusinessTemplate
   } = useWorkspaceStore();
 
   // Step 2 inputs
@@ -20,7 +21,7 @@ export const OnboardingWizard: React.FC = () => {
 
   // Step 3 inputs
   const [businessName, setBusinessName] = useState('');
-  const [busCategory, setBusCategory] = useState('E-Commerce & Retail');
+  const [busCategory, setBusCategory] = useState('Marketing Agency');
 
   // Step 5 inputs
   const [selectedTemplate, setSelectedTemplate] = useState('instagram-auto');
@@ -191,45 +192,218 @@ export const OnboardingWizard: React.FC = () => {
         )}
 
         {/* STEP 3: BUSINESS UNIT */}
-        {currentStep === 3 && (
-          <form onSubmit={handleStep3Submit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.busTitle}</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.busDesc}</p>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busLabel}</label>
-              <input
-                type="text"
-                required
-                className="glass-input"
-                placeholder={t.wizard.busPlaceholder}
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-              />
-            </div>
+        {currentStep === 3 && (() => {
+          const templatesList = [
+            {
+              id: 'marketing-agency',
+              title: 'Marketing Agency',
+              desc: 'Configure multi-brand environments, content calendars, and white-labeling templates.',
+              icon: <Briefcase size={22} style={{ color: 'var(--color-primary)' }} />,
+              badge: 'Agency Scaling',
+              color: 'rgba(139, 92, 246, 0.08)'
+            },
+            {
+              id: 'ecommerce',
+              title: 'E-Commerce & Retail',
+              desc: 'Direct connection with Shopify, WooCommerce, and automatic product sync catalogs.',
+              icon: <ShoppingBag size={22} style={{ color: '#10b981' }} />,
+              badge: 'Store Integration',
+              color: 'rgba(16, 185, 129, 0.08)'
+            },
+            {
+              id: 'retail',
+              title: 'Retail Store',
+              desc: 'Physical store foot-traffic campaigns, Google Business syncing, and local ads.',
+              icon: <Building2 size={22} style={{ color: '#f59e0b' }} />,
+              badge: 'Local Retail',
+              color: 'rgba(245, 158, 11, 0.08)'
+            },
+            {
+              id: 'restaurant',
+              title: 'Restaurant',
+              desc: 'Menu showcases, reservation automations, and localized Google Business integration.',
+              icon: <Store size={22} style={{ color: '#ef4444' }} />,
+              badge: 'Hospitality',
+              color: 'rgba(239, 68, 68, 0.08)'
+            },
+            {
+              id: 'hotel',
+              title: 'Hotel & Hospitality',
+              desc: 'Visual room showcases, local SEO, booking integrations, and review management.',
+              icon: <Hotel size={22} style={{ color: '#0ea5e9' }} />,
+              badge: 'Hospitality',
+              color: 'rgba(14, 165, 233, 0.08)'
+            },
+            {
+              id: 'real-estate',
+              title: 'Real Estate',
+              desc: 'Visual property showcase publishing, local geolocation tags, and local leads integration.',
+              icon: <Home size={22} style={{ color: '#8b5cf6' }} />,
+              badge: 'Local Geo-Targets',
+              color: 'rgba(139, 92, 246, 0.08)'
+            },
+            {
+              id: 'medical',
+              title: 'Medical Clinic',
+              desc: 'Secure WhatsApp booking, Google Business reviews, and educational content feeds.',
+              icon: <Stethoscope size={22} style={{ color: '#10b981' }} />,
+              badge: 'Healthcare',
+              color: 'rgba(16, 185, 129, 0.08)'
+            },
+            {
+              id: 'law',
+              title: 'Law Firm',
+              desc: 'LinkedIn authority building, secure lead generation, and Google Business presence.',
+              icon: <Scale size={22} style={{ color: '#64748b' }} />,
+              badge: 'Professional',
+              color: 'rgba(100, 116, 139, 0.08)'
+            },
+            {
+              id: 'tech-saas',
+              title: 'Technology Company',
+              desc: 'Secure API connections, developer logs, ERP pipelines, and Telegram logs.',
+              icon: <Cpu size={22} style={{ color: '#3b82f6' }} />,
+              badge: 'Tech & SaaS',
+              color: 'rgba(59, 130, 246, 0.08)'
+            },
+            {
+              id: 'education',
+              title: 'Education',
+              desc: 'Course promotions, student engagement across TikTok and YouTube, alumni networking.',
+              icon: <GraduationCap size={22} style={{ color: '#f59e0b' }} />,
+              badge: 'E-Learning',
+              color: 'rgba(245, 158, 11, 0.08)'
+            },
+            {
+              id: 'automotive',
+              title: 'Automotive',
+              desc: 'Vehicle showcases, inventory syncing, test drive bookings via WhatsApp.',
+              icon: <Car size={22} style={{ color: '#ef4444' }} />,
+              badge: 'Dealerships',
+              color: 'rgba(239, 68, 68, 0.08)'
+            },
+            {
+              id: 'influencer',
+              title: 'Influencer',
+              desc: 'Cross-platform viral publishing, personal brand kits, and engagement analytics.',
+              icon: <Mic size={22} style={{ color: '#d946ef' }} />,
+              badge: 'Personal Brand',
+              color: 'rgba(217, 70, 239, 0.08)'
+            },
+            {
+              id: 'freelancer',
+              title: 'Freelancer',
+              desc: 'Portfolio showcasing, LinkedIn networking, and streamlined client acquisition.',
+              icon: <UserCircle size={22} style={{ color: '#14b8a6' }} />,
+              badge: 'Solo Business',
+              color: 'rgba(20, 184, 166, 0.08)'
+            },
+            {
+              id: 'other',
+              title: 'Other',
+              desc: 'Blank canvas. Start from scratch and customize all integrations manually.',
+              icon: <Box size={22} style={{ color: '#94a3b8' }} />,
+              badge: 'Custom Build',
+              color: 'rgba(148, 163, 184, 0.08)'
+            }
+          ];
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busCatLabel}</label>
-              <select value={busCategory} onChange={(e) => setBusCategory(e.target.value)} className="glass-input">
-                <option value="E-Commerce & Retail">E-Commerce & Retail</option>
-                <option value="Health & Beauty">Health & Beauty</option>
-                <option value="Corporate / Financial Services">Corporate / Financial Services</option>
-                <option value="Real Estate">Real Estate</option>
-              </select>
-            </div>
+          // Auto-initialize template on mount if empty
+          if (!businessTemplate) {
+            setBusinessTemplate('marketing-agency');
+          }
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-              <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> {t.wizard.prev}
-              </button>
-              <button type="submit" className="btn-primary">
-                {t.wizard.next} <ChevronRight size={16} />
-              </button>
-            </div>
-          </form>
-        )}
+          return (
+            <form onSubmit={handleStep3Submit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div>
+                <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.busTitle}</h2>
+                <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.busDesc}</p>
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busLabel}</label>
+                <input
+                  type="text"
+                  required
+                  className="glass-input"
+                  placeholder={t.wizard.busPlaceholder}
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  style={{ fontSize: '15px', padding: '12px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>Choose a Business Template Category</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  {templatesList.map((tpl) => {
+                    const isSelected = businessTemplate === tpl.id;
+                    return (
+                      <div
+                        key={tpl.id}
+                        onClick={() => {
+                          setBusCategory(tpl.title);
+                          setBusinessTemplate(tpl.id);
+                        }}
+                        className="glass-card"
+                        style={{
+                          padding: '18px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '12px',
+                          borderRadius: '12px',
+                          border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                          background: isSelected ? tpl.color : 'rgba(255, 255, 255, 0.01)',
+                          transition: 'all 0.2s ease-in-out',
+                          position: 'relative',
+                          boxShadow: isSelected ? '0 4px 20px rgba(139, 92, 246, 0.15)' : 'none'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '8px',
+                            background: isSelected ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            {tpl.icon}
+                          </div>
+                          <span style={{
+                            fontSize: '10px',
+                            background: isSelected ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
+                            color: '#fff',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontWeight: 600
+                          }}>
+                            {tpl.badge}
+                          </span>
+                        </div>
+                        <div>
+                          <strong style={{ fontSize: '15px', color: '#fff', display: 'block', marginBottom: '4px' }}>{tpl.title}</strong>
+                          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.4', display: 'block' }}>{tpl.desc}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+                <button type="button" onClick={prevStep} className="btn-secondary">
+                  <ChevronLeft size={16} /> {t.wizard.prev}
+                </button>
+                <button type="submit" className="btn-primary" style={{ padding: '10px 24px' }}>
+                  {t.wizard.next} <ChevronRight size={16} />
+                </button>
+              </div>
+            </form>
+          );
+        })()}
 
         {/* STEP 4: SOCIAL CONNECTIONS */}
         {currentStep === 4 && (
