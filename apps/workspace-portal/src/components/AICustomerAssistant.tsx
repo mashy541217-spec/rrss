@@ -12,7 +12,7 @@ interface ChatMessage {
 }
 
 export const AICustomerAssistant: React.FC = () => {
-  const { connectOAuthAccount, addNotification } = useWorkspaceStore();
+  const { connectSocialAccount, addNotification } = useWorkspaceStore();
   const [prompt, setPrompt] = useState('');
   const [chatLog, setChatLog] = useState<ChatMessage[]>([
     { sender: 'assistant', text: 'Hello! I am your RRSS AUTO Copilot. I can help connect channels, schedule content campaigns, and manage automations without any complex setup. Try asking: "Connect my Instagram account" or "Schedule a campaign post".' }
@@ -49,7 +49,8 @@ export const AICustomerAssistant: React.FC = () => {
 
   const handleAction = async (actionKey: string) => {
     if (actionKey === 'connect_ig') {
-      await connectOAuthAccount('instagram', 'Instagram AI Link');
+      await connectSocialAccount('instagram', 'Instagram Profile');
+      addNotification('Instagram account initialized via copilot.', 'success');
       setChatLog((prev) => [...prev, { sender: 'assistant', text: 'Instagram account connected successfully! Isolation profile has been generated in the background.' }]);
     } else if (actionKey === 'enable_auto_pub') {
       addNotification('Auto-Publisher flow enabled successfully.', 'success');

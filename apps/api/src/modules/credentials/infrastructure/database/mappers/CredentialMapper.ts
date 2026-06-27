@@ -41,7 +41,9 @@ export class CredentialMapper {
       secrets: (raw.secrets || []).map(SecretMapper.toDomain)
     };
 
-    return Credential.reconstitute(props);
+    const credential = Credential.reconstitute(props);
+    (credential as any).businessId = raw.businessId;
+    return credential;
   }
 
   public static toPersistence(credential: Credential): PrismaCredentialWithSecrets {
@@ -59,6 +61,7 @@ export class CredentialMapper {
       provider: credential.provider,
       scope: credential.scope,
       ownerId: credential.ownerId.ownerId,
+      businessId: (credential as any).businessId ?? null,
       metadata: credential.metadata.data,
       policy: policyProps,
       version: credential.version.value,

@@ -50,6 +50,23 @@ model Workspace {
   @@index([status])
 }
 
+model Business {
+  id           String    @id
+  workspaceRef String
+  name         String
+  category     String
+  logoUrl      String?
+  brandColor   String?
+  emailBrand   Json      @default("{}")
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([workspaceRef])
+}
+
 // ----------------------------------------------------------------------------
 // IDENTITY BOUNDED CONTEXT
 // ----------------------------------------------------------------------------
@@ -465,26 +482,28 @@ model ExecutionAssignment {
 // CREDENTIALS BOUNDED CONTEXT
 // ----------------------------------------------------------------------------
 model Credential {
-  id        String    @id
-  name      String
-  type      String
-  status    String
-  provider  String
-  scope     String
-  ownerId   String
-  metadata  Json      @default("{}")
-  policy    Json      @default("{}")
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id         String    @id
+  name       String
+  type       String
+  status     String
+  provider   String
+  scope      String
+  ownerId    String
+  businessId String?
+  metadata   Json      @default("{}")
+  policy     Json      @default("{}")
+  version    Int       @default(1)
+  isDeleted  Boolean   @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   secrets CredentialSecret[]
 
   @@index([ownerId])
   @@index([status])
   @@index([type])
+  @@index([businessId])
 }
 
 model CredentialSecret {
@@ -548,6 +567,7 @@ model Asset {
   mimeType     String
   checksum     String?
   fileSize     BigInt?
+  businessId   String?
   metadata     Json    @default("{}")
 
   mediaFiles MediaFile[]
@@ -561,6 +581,7 @@ model Asset {
   @@index([workspaceRef])
   @@index([mediaType])
   @@index([status])
+  @@index([businessId])
 }
 
 model MediaFile {
@@ -646,6 +667,7 @@ model Campaign {
   audience     Json? // { name, segments, rules }
   goals        Json? // Array or single objective metric
   analytics    Json?
+  businessId   String?
 
   publications    Publication[]
   channels        CampaignChannel[]
@@ -661,6 +683,7 @@ model Campaign {
 
   @@index([workspaceRef])
   @@index([status])
+  @@index([businessId])
 }
 
 model Publication {
@@ -740,6 +763,7 @@ model Automation {
   retryConfig   Json? // Retry settings
   timeoutConfig Json? // Timeout settings
   executionPlan Json? // Generated ExecutionPlan json representation
+  businessId    String?
 
   nodes       WorkflowNode[]
   connections WorkflowConnection[]
@@ -754,6 +778,7 @@ model Automation {
 
   @@index([workspaceRef])
   @@index([status])
+  @@index([businessId])
 }
 
 model WorkflowNode {

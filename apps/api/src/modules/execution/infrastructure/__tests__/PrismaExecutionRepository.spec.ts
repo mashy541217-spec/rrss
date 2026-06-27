@@ -46,7 +46,7 @@ describe('PrismaExecutionRepository Integration', () => {
     const execution = Execution.request({
       context,
       workspaceRef: WorkspaceRef.create('ws-1'),
-      idempotencyKey: IdempotencyKey.create('idemp-1'),
+      idempotencyKey: IdempotencyKey.create('idemp-001'),
       retryPolicy: RetryPolicy.create({ maxAttempts: 3, baseBackoffMs: 1000, maxBackoffMs: 30000, jitterMs: 500, retryWindowMs: 0 }),
       capabilities: []
     }, id);
@@ -77,7 +77,7 @@ describe('PrismaExecutionRepository Integration', () => {
     const execution = Execution.request({
       context,
       workspaceRef: WorkspaceRef.create('ws-1'),
-      idempotencyKey: IdempotencyKey.create('idemp-2'),
+      idempotencyKey: IdempotencyKey.create('idemp-002'),
       retryPolicy: RetryPolicy.create({ maxAttempts: 3, baseBackoffMs: 1000, maxBackoffMs: 30000, jitterMs: 500, retryWindowMs: 0 }),
       capabilities: []
     }, id);

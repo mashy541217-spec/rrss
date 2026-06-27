@@ -119,7 +119,7 @@ export const CustomerDashboard: React.FC = () => {
                     </span>
                     <div>
                       <strong>{acc.name}</strong>
-                      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>Proxy: {acc.proxy}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>@{acc.username}</div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
@@ -128,7 +128,7 @@ export const CustomerDashboard: React.FC = () => {
                       {t.dashboard.activeStatus}
                     </span>
                     <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: '4px' }}>
-                      Profile Isolated (Score: {acc.isolationScore}%)
+                      Profile Isolated
                     </span>
                   </div>
                 </div>

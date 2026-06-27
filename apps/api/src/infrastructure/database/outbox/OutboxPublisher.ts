@@ -15,7 +15,7 @@ export class OutboxPublisher {
 
     const outboxMessages = events.map(event => ({
       aggregateType: aggregate.constructor.name,
-      aggregateId: event.getAggregateId().toString(),
+      aggregateId: String((event.getAggregateId() as any).value),
       eventType: event.constructor.name,
       payload: JSON.parse(JSON.stringify(event)), // Serialize
       status: 'PENDING'

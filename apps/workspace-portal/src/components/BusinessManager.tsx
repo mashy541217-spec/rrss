@@ -5,6 +5,7 @@ import {
   Plus, FolderOpen, LayoutDashboard, Share2, Play, Users,
   Settings, HeartPulse, Bell, ShieldCheck, Palette
 } from 'lucide-react';
+import { SocialConnectionCenter } from './SocialConnectionCenter';
 
 export const BusinessManager: React.FC = () => {
   const {
@@ -99,29 +100,7 @@ export const BusinessManager: React.FC = () => {
   const renderChannels = () => (
     <div className="glass-panel" style={{ borderRadius: '12px', padding: '20px' }}>
       <h3 style={{ marginBottom: '16px' }}>{t.business?.tabs?.channels || 'Channels'}</h3>
-      {activeAccounts.length === 0 ? (
-        <p style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>No channels connected yet.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {activeAccounts.map(acc => (
-            <div key={acc.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ fontSize: '20px' }}>{acc.provider.toLowerCase() === 'instagram' ? '📸' : '👥'}</div>
-                <div>
-                  <div style={{ fontWeight: 600 }}>{acc.name}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>@{acc.username}</div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className={`status-dot ${acc.status === 'CONNECTED' ? 'connected-pulse' : 'warn'}`} />
-                <span style={{ fontSize: '12px', color: acc.status === 'CONNECTED' ? 'var(--color-success)' : 'var(--color-warning)' }}>
-                  {acc.status}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <SocialConnectionCenter />
     </div>
   );
 

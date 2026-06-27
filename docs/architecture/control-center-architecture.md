@@ -1,6 +1,6 @@
-# RRSS AUTO: Enterprise Control Center Architecture
+RRSS AUTO: Enterprise Control Center Architecture
 
-This document defines the architectural specifications, visual standards, data lifecycles, and component hierarchies for the **Enterprise Control Center (ECC)**—the primary administrative platform and user interface for RRSS AUTO.
+This document defines the architectural specifications, visual standards, data lifecycles, and component hierarchies for the **Enterprise Control Center (ECC)**—the primary administrative nd user interface for RRSS AUTO.
 
 ---
 
@@ -44,6 +44,7 @@ The Enterprise Control Center is designed as a **Microkernel-driven Single Page 
 ```
 
 ### Key Architectural Guidelines
+
 - **DDD & Bounded Contexts**: The UI is divided into standalone modules matching backend aggregates (Organizations, Workspaces, Workers, Credentials, Plugins, Campaigns).
 - **CQRS Mapping**: UI triggers represent Command actions (e.g. `DispatchProvisioningCommand`) or Query actions (e.g. `QueryTelemetry`). State is unidirectional.
 - **SOLID Principles**: Views do not directly communicate with API clients. They rely on React hooks (`useWorkers`, `useInfrastructure`) that depend on abstract Zustand stores and services.
@@ -162,6 +163,7 @@ stateDiagram-v2
 ```
 
 ### Telemetry Mapping
+
 - **Status Ring**: Color coded indicator (`Idle: Green`, `Executing: Blue`, `Unhealthy: Orange`, `Dead: Red`) with a soft glassmorphic pulsing animation.
 - **Capabilities Matrix**: Real-time checklist showcasing:
   - Installed Browser Engines (Playwright, Puppeteer, Chrome)
@@ -188,7 +190,9 @@ graph TD
 ```
 
 ### Action Confirmation System
+
 To prevent unauthorized AI executions:
+
 1. The AI translates prompts to JSON Actions.
 2. The UI intercepts the JSON Action, rendering it as a **Verification Modal**.
 3. The operation only proceeds to the API Gateway once the administrator clicks **Confirm Action**.
@@ -256,7 +260,7 @@ The platform state is managed using unified Zustand stores. It leverages modular
 ```typescript
 // useUIStore.ts
 export interface UIState {
-  theme: 'light' | 'dark';
+  theme: "light" | "dark";
   sidebarCollapsed: boolean;
   activeDrawer: string | null;
   toggleTheme: () => void;

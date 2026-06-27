@@ -51,16 +51,34 @@ export class PrismaExecutionRepository
       model.version = newVersion;
       (execution as any)['_version'] = newVersion;
 
+      // Separate scalar fields from nested relation objects to avoid Prisma rejecting
+      // relation fields (executionId, etc.) at the root Execution table level.
+      // metadata and timeline are always present when produced by toPersistence().
+      const { metadata, timeline, ...scalarFields } = model;
+      if (!metadata || !timeline) {
+        throw new Error(`ExecutionMapper.toPersistence must always produce metadata and timeline`);
+      }
+
       if (!existing) {
         // Insert
         await tx.execution.create({
           data: {
-            ...model,
+            ...scalarFields,
             metadata: {
-              create: model.metadata
+              create: {
+                actor: metadata.actor,
+                intent: metadata.intent,
+                priority: metadata.priority,
+                capabilities: metadata.capabilities,
+              }
             },
             timeline: {
-              create: model.timeline
+              create: timeline.map(t => ({
+                status: t.status,
+                occurredAt: t.occurredAt,
+                message: t.message,
+                actor: t.actor,
+              }))
             }
           }
         });
@@ -70,23 +88,29 @@ export class PrismaExecutionRepository
           throw new ConcurrencyException(`Execution ${model.id} was modified by another transaction.`);
         }
 
-        // Update
-        // For timeline, we assume append-only, but Prisma replace/create is tricky. We'll delete and recreate timeline for simplicity or just delete many.
-        // In a real prod environment we'd append only the difference, but replacing is safer for the demo.
+        // Delete and recreate related records (append-only timeline replaced for simplicity)
         await tx.executionTimeline.deleteMany({ where: { executionId: model.id } });
-        
-        // Similarly for metadata
         await tx.executionMetadata.deleteMany({ where: { executionId: model.id } });
 
         await tx.execution.update({
           where: { id: model.id },
           data: {
-            ...model,
+            ...scalarFields,
             metadata: {
-              create: model.metadata
+              create: {
+                actor: metadata.actor,
+                intent: metadata.intent,
+                priority: metadata.priority,
+                capabilities: metadata.capabilities,
+              }
             },
             timeline: {
-              create: model.timeline
+              create: timeline.map(t => ({
+                status: t.status,
+                occurredAt: t.occurredAt,
+                message: t.message,
+                actor: t.actor,
+              }))
             }
           }
         });
