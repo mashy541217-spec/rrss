@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,16 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ----------------------------------------------------------------------------
-// OUTBOX PATTERN FOUNDATION
-// ----------------------------------------------------------------------------
 model OutboxMessage {
   id            String    @id @default(uuid())
   aggregateType String
   aggregateId   String
   eventType     String
   payload       Json
-  status        String    @default("PENDING") // PENDING, PROCESSED, FAILED, DEAD_LETTER
+  status        String    @default("PENDING")
   retries       Int       @default(0)
   error         String?
   createdAt     DateTime  @default(now())
@@ -28,18 +22,14 @@ model OutboxMessage {
   @@index([status, createdAt])
 }
 
-// ----------------------------------------------------------------------------
-// WORKSPACE BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model Workspace {
-  id       String @id
-  name     String
-  slug     String @unique
-  ownerId  String
-  status   String
-  settings Json
-  limits   Json
-
+  id        String    @id
+  name      String
+  slug      String    @unique
+  ownerId   String
+  status    String
+  settings  Json
+  limits    Json
   version   Int       @default(1)
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
@@ -67,38 +57,33 @@ model Business {
   @@index([workspaceRef])
 }
 
-// ----------------------------------------------------------------------------
-// IDENTITY BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model User {
-  id           String @id
-  email        String @unique
+  id           String    @id
+  email        String    @unique
   displayName  String
   passwordHash String
   status       String
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([email])
   @@index([status])
 }
 
 model Membership {
-  id           String @id
+  id           String    @id
   userId       String
   workspaceRef String
   roleId       String
   status       String
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([userId])
   @@index([workspaceRef])
@@ -106,37 +91,35 @@ model Membership {
 }
 
 model WorkspaceRole {
-  id           String   @id
+  id           String    @id
   name         String
   description  String
   workspaceRef String
   permissions  String[]
   status       String
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([workspaceRef])
   @@index([status])
 }
 
 model Invitation {
-  id           String   @id
+  id           String    @id
   email        String
   workspaceRef String
   roleId       String
   token        String
   status       String
   expiresAt    DateTime
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([email])
   @@index([workspaceRef])
@@ -144,33 +127,26 @@ model Invitation {
   @@index([status])
 }
 
-// ----------------------------------------------------------------------------
-// EXECUTION BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
-
 model Execution {
-  id               String  @id
+  id               String              @id
   workspaceRef     String
-  idempotencyKey   String  @unique
+  idempotencyKey   String              @unique
   status           String
   retryPolicy      Json
-  attemptsMade     Int     @default(0)
-  totalSteps       Int     @default(0)
-  completedSteps   Int     @default(0)
+  attemptsMade     Int                 @default(0)
+  totalSteps       Int                 @default(0)
+  completedSteps   Int                 @default(0)
   assignedWorkerId String?
   failure          Json?
-
-  metadata ExecutionMetadata?
-  timeline ExecutionTimeline[]
-  steps    ExecutionStep[]
-  jobs     Job[]
-
-  // Traits
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version          Int                 @default(1)
+  isDeleted        Boolean             @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  metadata         ExecutionMetadata?
+  steps            ExecutionStep[]
+  timeline         ExecutionTimeline[]
+  jobs             Job[]
 
   @@index([workspaceRef])
   @@index([status])
@@ -180,21 +156,21 @@ model Execution {
 model ExecutionMetadata {
   id           String    @id @default(uuid())
   executionId  String    @unique
-  execution    Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
   actor        String
   intent       String
   priority     String
-  capabilities Json // Array of capability requirements
+  capabilities Json
+  execution    Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 }
 
 model ExecutionTimeline {
   id          String    @id @default(uuid())
   executionId String
-  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
   status      String
   occurredAt  DateTime
   message     String
   actor       String?
+  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 
   @@index([executionId, occurredAt])
 }
@@ -202,7 +178,6 @@ model ExecutionTimeline {
 model ExecutionStep {
   id             String    @id
   executionId    String
-  execution      Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
   order          Int
   name           String
   description    String
@@ -214,13 +189,12 @@ model ExecutionStep {
   retryAttempts  Int       @default(0)
   startedAt      DateTime?
   completedAt    DateTime?
-
-  // Traits
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version        Int       @default(1)
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  execution      Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
 
   @@unique([executionId, idempotencyKey])
   @@index([executionId, order])
@@ -228,9 +202,8 @@ model ExecutionStep {
 }
 
 model Job {
-  id                String    @id
+  id                String             @id
   executionId       String
-  execution         Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)
   stepId            String?
   workspaceRef      String
   status            String
@@ -238,19 +211,17 @@ model Job {
   queue             String
   claimedByWorkerId String?
   claimedAt         DateTime?
-  attempts          Int       @default(0)
-  maxAttempts       Int       @default(3)
+  attempts          Int                @default(0)
+  maxAttempts       Int                @default(3)
   enqueuedAt        DateTime?
   leaseExpiresAt    DateTime?
-
-  assignments WorkerAssignment[]
-
-  // Traits
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version           Int                @default(1)
+  isDeleted         Boolean            @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  execution         Execution          @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  assignments       WorkerAssignment[]
 
   @@index([executionId])
   @@index([status])
@@ -261,32 +232,28 @@ model Job {
 model WorkerAssignment {
   id             String   @id @default(uuid())
   jobId          String
-  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   workerId       String
   claimedAt      DateTime @default(now())
   leaseExpiresAt DateTime
-  status         String // ACTIVE, EXPIRED, COMPLETED, FAILED
+  status         String
+  job            Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([jobId])
   @@index([workerId])
 }
 
-// ----------------------------------------------------------------------------
-// SCHEDULER BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model Scheduler {
-  id                    String @id
+  id                    String    @id
   status                String
   concurrencyPolicy     Json
   workerSelectionPolicy Json
   priorityPolicy        Json
   retryPolicy           Json
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version               Int       @default(1)
+  isDeleted             Boolean   @default(false)
+  deletedAt             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
 
 model Schedule {
@@ -298,12 +265,11 @@ model Schedule {
   concurrencyPolicy Json?
   lastRunAt         DateTime?
   nextRunAt         DateTime?
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version           Int       @default(1)
+  isDeleted         Boolean   @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([workspaceRef])
   @@index([status])
@@ -311,80 +277,72 @@ model Schedule {
 }
 
 model ExecutionReservation {
-  id          String   @id
+  id          String    @id
   executionId String
   workerId    String
   status      String
   reservedAt  DateTime
   expiresAt   DateTime
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version     Int       @default(1)
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([executionId])
   @@index([workerId])
   @@index([status])
 }
 
-// ----------------------------------------------------------------------------
-// RESOURCE MANAGER BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model CapacityManager {
-  id             String @id
+  id             String    @id
   status         String
   globalLimits   Json
   reservedLimits Json
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version        Int       @default(1)
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }
 
 model ResourcePool {
-  id            String @id
+  id            String    @id
   name          String
   totalCapacity Json
   usedCapacity  Json
   status        String
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version       Int       @default(1)
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model ResourceReservation {
-  id           String   @id
+  id           String    @id
   poolId       String
   resourceType String
   amount       Int
   status       String
   expiresAt    DateTime
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([poolId])
 }
 
 model ResourceLease {
-  id        String   @id
+  id        String    @id
   workerId  String
   poolId    String
   resources Json
   status    String
   grantedAt DateTime
   expiresAt DateTime
-
   version   Int       @default(1)
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
@@ -396,28 +354,23 @@ model ResourceLease {
   @@index([status])
 }
 
-// ----------------------------------------------------------------------------
-// WORKER BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model Worker {
-  id               String   @id
-  hostname         String   @unique
+  id               String                @id
+  hostname         String                @unique
   status           String
-  capabilities     Json // Array of WorkerCapability
+  capabilities     Json
   currentJobId     String?
   concurrencyLimit Int
   activeJobCount   Int
   registeredAt     DateTime
-
-  sessions    WorkerSession[]
-  heartbeats  WorkerHeartbeat[]
-  assignments ExecutionAssignment[]
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version          Int                   @default(1)
+  isDeleted        Boolean               @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  assignments      ExecutionAssignment[]
+  heartbeats       WorkerHeartbeat[]
+  sessions         WorkerSession[]
 
   @@index([status])
 }
@@ -425,34 +378,32 @@ model Worker {
 model WorkerSession {
   id        String    @id
   workerId  String
-  worker    Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
   startedAt DateTime
   endedAt   DateTime?
   status    String
-
   version   Int       @default(1)
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  worker    Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@index([workerId])
 }
 
 model WorkerHeartbeat {
-  id          String   @id
+  id          String    @id
   workerId    String
-  worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Cascade)
   receivedAt  DateTime
   cpuUsage    Float?
   memoryUsage Float?
   status      String
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version     Int       @default(1)
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  worker      Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@index([workerId, receivedAt])
 }
@@ -460,45 +411,40 @@ model WorkerHeartbeat {
 model ExecutionAssignment {
   id          String    @id
   workerId    String
-  worker      Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
   executionId String
   jobId       String
   status      String
   assignedAt  DateTime
   completedAt DateTime?
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  version     Int       @default(1)
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  worker      Worker    @relation(fields: [workerId], references: [id], onDelete: Cascade)
 
   @@index([workerId])
   @@index([executionId])
   @@index([jobId])
 }
 
-// ----------------------------------------------------------------------------
-// CREDENTIALS BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model Credential {
-  id         String    @id
+  id         String             @id
   name       String
   type       String
   status     String
   provider   String
   scope      String
   ownerId    String
-  businessId String?
-  metadata   Json      @default("{}")
-  policy     Json      @default("{}")
-  version    Int       @default(1)
-  isDeleted  Boolean   @default(false)
+  metadata   Json               @default("{}")
+  policy     Json               @default("{}")
+  version    Int                @default(1)
+  isDeleted  Boolean            @default(false)
   deletedAt  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  secrets CredentialSecret[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  businessId String?
+  secrets    CredentialSecret[]
 
   @@index([ownerId])
   @@index([status])
@@ -509,7 +455,6 @@ model Credential {
 model CredentialSecret {
   id                     String     @id
   credentialId           String
-  credential             Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
   version                Int
   encryptedValue         String
   algorithm              String
@@ -517,31 +462,27 @@ model CredentialSecret {
   vaultReference         String?
   isActive               Boolean    @default(true)
   createdAt              DateTime   @default(now())
+  credential             Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
 
   @@unique([credentialId, version])
   @@index([credentialId])
 }
 
-// ----------------------------------------------------------------------------
-// CONTENT BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model Content {
-  id           String  @id
+  id           String            @id
   workspaceRef String
   status       String
   title        String?
   body         String?
-  metadata     Json    @default("{}")
-  analytics    Json    @default("{}")
-
-  versions    ContentVersion[]
-  collections MediaCollection[]
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  metadata     Json              @default("{}")
+  analytics    Json              @default("{}")
+  version      Int               @default(1)
+  isDeleted    Boolean           @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  versions     ContentVersion[]
+  collections  MediaCollection[]
 
   @@index([workspaceRef])
   @@index([status])
@@ -550,33 +491,31 @@ model Content {
 model ContentVersion {
   id        String   @id
   contentId String
-  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
   version   Int
   changes   Json     @default("{}")
   createdAt DateTime @default(now())
+  content   Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@unique([contentId, version])
   @@index([contentId])
 }
 
 model Asset {
-  id           String  @id
+  id           String      @id
   workspaceRef String
   status       String
   mediaType    String
   mimeType     String
   checksum     String?
   fileSize     BigInt?
+  metadata     Json        @default("{}")
+  version      Int         @default(1)
+  isDeleted    Boolean     @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
   businessId   String?
-  metadata     Json    @default("{}")
-
-  mediaFiles MediaFile[]
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  mediaFiles   MediaFile[]
 
   @@index([workspaceRef])
   @@index([mediaType])
@@ -585,101 +524,92 @@ model Asset {
 }
 
 model MediaFile {
-  id       String  @id
-  assetId  String
-  asset    Asset   @relation(fields: [assetId], references: [id], onDelete: Cascade)
-  url      String
-  bucket   String?
-  key      String?
-  size     BigInt
-  metadata Json    @default("{}")
-
+  id        String   @id
+  assetId   String
+  url       String
+  bucket    String?
+  key       String?
+  size      BigInt
+  metadata  Json     @default("{}")
   createdAt DateTime @default(now())
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
 
   @@index([assetId])
 }
 
 model MediaCollection {
-  id         String  @id
+  id         String    @id
   contentId  String
-  content    Content @relation(fields: [contentId], references: [id], onDelete: Cascade)
   name       String
   type       String
-  mediaItems Json    @default("[]") // References to Asset IDs
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  mediaItems Json      @default("[]")
+  version    Int       @default(1)
+  isDeleted  Boolean   @default(false)
+  deletedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  content    Content   @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@index([contentId])
 }
 
 model ContentTemplate {
-  id           String  @id
+  id           String    @id
   workspaceRef String
   name         String
   description  String?
-  schema       Json    @default("{}")
-  defaultData  Json    @default("{}")
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  schema       Json      @default("{}")
+  defaultData  Json      @default("{}")
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([workspaceRef])
 }
 
 model PublicationProfile {
-  id           String @id
+  id           String    @id
   workspaceRef String
   name         String
-  targets      Json   @default("[]") // Array of PublicationTarget
-  settings     Json   @default("{}")
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  targets      Json      @default("[]")
+  settings     Json      @default("{}")
+  version      Int       @default(1)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@index([workspaceRef])
 }
 
-// ----------------------------------------------------------------------------
-// CAMPAIGN BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model Campaign {
-  id           String   @id
-  workspaceRef String
-  name         String
-  description  String?
-  status       String // Draft, Ready, Scheduled, Running, Paused, Completed, Archived, Cancelled
-  priority     String // Low, Medium, High, Critical
-  objective    String // Engagement, Traffic, Conversions, BrandAwareness
-  strategy     String // Manual, Scheduled, Triggered
-  tags         String[]
-  budget       Json // { amount, currency, spent, type }
-  schedule     Json? // { startDate, endDate, cron, timezone }
-  audience     Json? // { name, segments, rules }
-  goals        Json? // Array or single objective metric
-  analytics    Json?
-  businessId   String?
-
-  publications    Publication[]
+  id              String                   @id
+  workspaceRef    String
+  name            String
+  description     String?
+  status          String
+  priority        String
+  objective       String
+  strategy        String
+  tags            String[]
+  budget          Json
+  schedule        Json?
+  audience        Json?
+  goals           Json?
+  analytics       Json?
+  version         Int                      @default(1)
+  isDeleted       Boolean                  @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  businessId      String?
   channels        CampaignChannel[]
   contents        CampaignContent[]
   executions      CampaignExecution[]
   metricSnapshots CampaignMetricSnapshot[]
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  publications    Publication[]
 
   @@index([workspaceRef])
   @@index([status])
@@ -689,9 +619,8 @@ model Campaign {
 model Publication {
   id          String    @id
   campaignId  String
-  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  status      String // Draft, Scheduled, Published, Failed, Cancelled
-  format      String // POST, STORY, REEL, VIDEO, etc.
+  status      String
+  format      String
   contentId   String
   publishAt   DateTime?
   publishedAt DateTime?
@@ -700,6 +629,7 @@ model Publication {
   metadata    Json      @default("{}")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
 }
@@ -707,11 +637,11 @@ model Publication {
 model CampaignChannel {
   id            String   @id
   campaignId    String
-  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   platform      String
   type          String
   configuration Json     @default("{}")
   createdAt     DateTime @default(now())
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
 }
@@ -719,10 +649,10 @@ model CampaignChannel {
 model CampaignContent {
   id         String   @id
   campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   contentId  String
   attachedAt DateTime @default(now())
   attachedBy String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
 }
@@ -730,11 +660,11 @@ model CampaignContent {
 model CampaignExecution {
   id            String   @id
   campaignId    String
-  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   executionId   String
   publicationId String?
   status        String
   triggeredAt   DateTime @default(now())
+  campaign      Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
 }
@@ -742,39 +672,34 @@ model CampaignExecution {
 model CampaignMetricSnapshot {
   id         String   @id
   campaignId String
-  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
   recordedAt DateTime @default(now())
   metrics    Json     @default("{}")
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
 }
 
-// ----------------------------------------------------------------------------
-// AUTOMATION BOUNDED CONTEXT
-// ----------------------------------------------------------------------------
 model Automation {
   id            String               @id
   workspaceRef  String
   name          String
   description   String?
-  status        String // Draft, Published, Running, Paused, Archived, Deleted
-  variables     Json                 @default("[]") // Array of variable definitions
-  trigger       Json? // Trigger configuration
-  retryConfig   Json? // Retry settings
-  timeoutConfig Json? // Timeout settings
-  executionPlan Json? // Generated ExecutionPlan json representation
+  status        String
+  variables     Json                 @default("[]")
+  trigger       Json?
+  retryConfig   Json?
+  timeoutConfig Json?
+  executionPlan Json?
+  version       Int                  @default(1)
+  isDeleted     Boolean              @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
   businessId    String?
-
-  nodes       WorkflowNode[]
-  connections WorkflowConnection[]
-  versions    AutomationVersion[]
-  snapshots   AutomationSnapshot[]
-
-  version   Int       @default(1)
-  isDeleted Boolean   @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  snapshots     AutomationSnapshot[]
+  versions      AutomationVersion[]
+  connections   WorkflowConnection[]
+  nodes         WorkflowNode[]
 
   @@index([workspaceRef])
   @@index([status])
@@ -784,15 +709,14 @@ model Automation {
 model WorkflowNode {
   id           String     @id
   automationId String
-  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
-  type         String // Trigger, Condition, Action
+  type         String
   name         String
   config       Json       @default("{}")
   positionX    Float      @default(0)
   positionY    Float      @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@index([automationId])
 }
@@ -800,14 +724,13 @@ model WorkflowNode {
 model WorkflowConnection {
   id           String     @id
   automationId String
-  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
   sourceId     String
   targetId     String
   sourceHandle String?
   targetHandle String?
   condition    String?
-
-  createdAt DateTime @default(now())
+  createdAt    DateTime   @default(now())
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@index([automationId])
 }
@@ -815,7 +738,6 @@ model WorkflowConnection {
 model AutomationVersion {
   id            String     @id
   automationId  String
-  automation    Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
   versionNumber Int
   status        String
   trigger       Json?
@@ -824,6 +746,7 @@ model AutomationVersion {
   variables     Json       @default("[]")
   executionPlan Json?
   createdAt     DateTime   @default(now())
+  automation    Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@unique([automationId, versionNumber])
   @@index([automationId])
@@ -831,11 +754,10 @@ model AutomationVersion {
 
 model AutomationSnapshot {
   id           String     @id
-  automationId  String
-  automation    Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId String
   snapshotData Json       @default("{}")
   createdAt    DateTime   @default(now())
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@index([automationId])
 }
-

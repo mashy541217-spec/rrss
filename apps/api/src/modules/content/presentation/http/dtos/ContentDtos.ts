@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsArray, IsEnum, IsNotEmpty } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsEnum, IsNotEmpty, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MediaCategory } from '../../../domain/enums/MediaCategory';
 import { AssetVisibility } from '../../../domain/enums/AssetVisibility';
@@ -16,7 +16,7 @@ export class UploadMediaDto {
   @ApiProperty() @IsString() @IsNotEmpty() uploadedBy: string;
   @ApiProperty({ enum: MediaCategory }) @IsEnum(MediaCategory) mediaCategory: MediaCategory;
   @ApiProperty() @IsString() @IsNotEmpty() mimeType: string;
-  @ApiProperty() fileSizeBytes: number;
+  @ApiProperty() @IsNumber() fileSizeBytes: number;
   @ApiProperty() @IsString() @IsNotEmpty() url: string;
   @ApiPropertyOptional() @IsOptional() @IsString() bucket?: string;
   @ApiPropertyOptional() @IsOptional() @IsString() storageKey?: string;

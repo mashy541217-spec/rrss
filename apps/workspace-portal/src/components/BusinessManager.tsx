@@ -1,24 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useWorkspaceStore } from '../store/useWorkspaceStore';
-import type { BusinessTab, TeamMember } from '../store/useWorkspaceStore';
+import type { BusinessTab } from '../store/useWorkspaceStore';
 import {
   Plus, FolderOpen, LayoutDashboard, Share2, Play, Users,
-  Settings, HeartPulse, Bell, ShieldCheck, Palette
+  Settings, HeartPulse, Bell, ShieldCheck, Palette, BarChart3, Sparkles, FileText
 } from 'lucide-react';
 import { SocialConnectionCenter } from './SocialConnectionCenter';
+import { DigitalAssetManager } from './DigitalAssetManager';
+import { CampaignDashboard } from './CampaignDashboard';
+import { AutomationHome } from './AutomationHome';
+import { AnalyticsCenter } from './AnalyticsCenter';
+import { AICopilotHome } from './AICopilotHome';
+import { ReportsDashboard } from './ReportsDashboard';
+import { ReportBuilderWizard } from './ReportBuilderWizard';
+import { TeamManager } from './TeamManager';
+import { BusinessSettings } from './BusinessSettings';
+import { useLimitEngine } from '../lib/LimitEngine';
+import { FeatureGate } from './FeatureGate';
 
 export const BusinessManager: React.FC = () => {
   const {
-    businesses, addBusiness, activeBusinessId, setActiveBusinessId,
-    activeBusinessTab, setActiveBusinessTab, socialAccounts,
-    businessTeam, addTeamMember, t
+    businesses, activeBusinessId, activeBusinessTab, setActiveBusinessId,
+    setActiveBusinessTab, socialAccounts, addBusiness, t
   } = useWorkspaceStore();
+
+  const { canAddBusiness } = useLimitEngine();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Marketing Agency');
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('Viewer');
+  const [showReportBuilder, setShowReportBuilder] = React.useState(false);
 
   const activeBus = businesses.find(b => b.id === activeBusinessId) || businesses[0];
 
@@ -31,35 +42,21 @@ export const BusinessManager: React.FC = () => {
   const handleAddBusiness = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+    if (!canAddBusiness()) {
+      setShowAddModal(false);
+      return;
+    }
     addBusiness(name, category);
     setName('');
     setShowAddModal(false);
   };
-
-  const handleInvite = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteEmail.trim() || !activeBus) return;
-    
-    const newMember: TeamMember = {
-      id: `usr-${Date.now()}`,
-      name: inviteEmail.split('@')[0],
-      email: inviteEmail,
-      role: inviteRole,
-      status: 'Pending',
-      avatarInitials: inviteEmail.substring(0, 2).toUpperCase()
-    };
-    addTeamMember(activeBus.id, newMember);
-    setInviteEmail('');
-  };
-
-  const currentTeam = activeBus ? (businessTeam[activeBus.id] || []) : [];
   const activeAccounts = socialAccounts.filter(a => a.businessId === activeBus?.id);
 
   // Compute Health Score
   let healthScore = 0;
   if (activeAccounts.length > 0) healthScore += 25;
   healthScore += 25; // Mock active automation
-  if (currentTeam.length >= 2) healthScore += 20;
+  if (activeBus?.team && activeBus.team.length >= 2) healthScore += 20;
   if (activeBus?.logoUrl) healthScore += 15;
   if (activeBus?.brandColor) healthScore += 15;
   if (healthScore === 50) healthScore = 65; // Boost mock
@@ -104,55 +101,6 @@ export const BusinessManager: React.FC = () => {
     </div>
   );
 
-  const renderTeam = () => (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
-      <div className="glass-panel" style={{ borderRadius: '12px', padding: '20px' }}>
-        <h3 style={{ marginBottom: '16px' }}>{t.business?.tabs?.team || 'Team'}</h3>
-        {currentTeam.length === 0 ? (
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '13px' }}>No team members invited yet.</p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {currentTeam.map(member => (
-              <div key={member.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <div className="team-avatar">{member.avatarInitials}</div>
-                  <div>
-                    <div style={{ fontWeight: 600, fontSize: '13px' }}>{member.name}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{member.email}</div>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <span className="role-badge">{member.role}</span>
-                  <span style={{ fontSize: '11px', color: member.status === 'Active' ? 'var(--color-success)' : 'var(--color-warning)' }}>
-                    {member.status}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      
-      <div className="glass-panel" style={{ borderRadius: '12px', padding: '20px', height: 'fit-content' }}>
-        <h4 style={{ marginBottom: '12px' }}>Invite Member</h4>
-        <form onSubmit={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <input type="email" placeholder="Email address" required className="glass-input" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
-          <select className="glass-input" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
-            <option value="Owner">{t.business?.roles?.owner || 'Owner'}</option>
-            <option value="Manager">{t.business?.roles?.manager || 'Manager'}</option>
-            <option value="Marketing">{t.business?.roles?.marketing || 'Marketing'}</option>
-            <option value="Content Creator">{t.business?.roles?.creator || 'Content Creator'}</option>
-            <option value="Sales">{t.business?.roles?.sales || 'Sales'}</option>
-            <option value="Support">{t.business?.roles?.support || 'Support'}</option>
-            <option value="Analyst">{t.business?.roles?.analyst || 'Analyst'}</option>
-            <option value="Viewer">{t.business?.roles?.viewer || 'Viewer'}</option>
-            <option value="Guest">{t.business?.roles?.guest || 'Guest'}</option>
-          </select>
-          <button type="submit" className="btn-primary" style={{ marginTop: '8px' }}>Send Invite</button>
-        </form>
-      </div>
-    </div>
-  );
 
   const renderHealth = () => {
     const circumference = 2 * Math.PI * 40;
@@ -182,8 +130,8 @@ export const BusinessManager: React.FC = () => {
             <span>{t.business?.health?.automations || 'Active Automations'} (Active)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
-            <Users size={16} color={currentTeam.length >= 2 ? "var(--color-success)" : "var(--color-warning)"} />
-            <span style={{ color: currentTeam.length >= 2 ? '#fff' : 'var(--color-text-muted)' }}>{t.business?.health?.team || 'Team Members'} (Min 2)</span>
+            <Users size={16} color={activeBus?.team && activeBus.team.length >= 2 ? "var(--color-success)" : "var(--color-warning)"} />
+            <span style={{ color: activeBus?.team && activeBus.team.length >= 2 ? '#fff' : 'var(--color-text-muted)' }}>{t.business?.health?.team || 'Team Members'} (Min 2)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13px' }}>
             <Palette size={16} color={activeBus?.brandColor ? "var(--color-success)" : "var(--color-warning)"} />
@@ -198,18 +146,38 @@ export const BusinessManager: React.FC = () => {
     switch (activeBusinessTab) {
       case 'dashboard': return renderDashboard();
       case 'channels': return renderChannels();
-      case 'team': return renderTeam();
       case 'health': return renderHealth();
-      case 'campaigns':
-      case 'media':
+      case 'media': return <DigitalAssetManager />;
+      case 'campaigns': return <CampaignDashboard />;
+      case 'automation': 
+        return (
+          <FeatureGate feature="automationStudio" featureName="Automation Studio" fallbackType="replace">
+            <AutomationHome />
+          </FeatureGate>
+        );
+      case 'analytics': 
+        return (
+          <FeatureGate feature="analytics" featureName="Analytics Center" fallbackType="replace">
+            <AnalyticsCenter />
+          </FeatureGate>
+        );
+      case 'reports': 
+        return (
+          <FeatureGate feature="reports" featureName="Enterprise Reports" fallbackType="replace">
+            <ReportsDashboard onNewReport={() => setShowReportBuilder(true)} />
+          </FeatureGate>
+        );
+      case 'ai': 
+        return (
+          <FeatureGate feature="aiCopilot" featureName="AI Copilot" fallbackType="replace">
+            <AICopilotHome />
+          </FeatureGate>
+        );
+      case 'team': return <TeamManager />;
       case 'settings':
       case 'notifications':
-        return (
-          <div className="glass-panel" style={{ borderRadius: '12px', padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-            Module "{activeBusinessTab}" is active for <strong>{activeBus?.name}</strong> (UI coming in next sprint).
-          </div>
-        );
-      default: return renderDashboard();
+        return <BusinessSettings />;
+      default: return null;
     }
   };
 
@@ -237,7 +205,11 @@ export const BusinessManager: React.FC = () => {
               <button className="btn-secondary" style={{ padding: '8px 12px', fontSize: '12px', display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <Settings size={14} /> Manage
               </button>
-              <button onClick={() => setShowAddModal(true)} className="btn-primary" style={{ padding: '8px 12px', fontSize: '12px', display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <button onClick={() => {
+                if (canAddBusiness()) {
+                  setShowAddModal(true);
+                }
+              }} className="btn-primary" style={{ padding: '8px 12px', fontSize: '12px', display: 'flex', gap: '6px', alignItems: 'center' }}>
                 <Plus size={14} /> New Business
               </button>
             </div>
@@ -249,6 +221,10 @@ export const BusinessManager: React.FC = () => {
               { id: 'dashboard', label: t.business?.tabs?.dashboard || 'Dashboard', icon: <LayoutDashboard size={14} /> },
               { id: 'channels', label: t.business?.tabs?.channels || 'Channels', icon: <Share2 size={14} /> },
               { id: 'campaigns', label: t.business?.tabs?.campaigns || 'Campaigns', icon: <Play size={14} /> },
+              { id: 'automation', label: 'Automation', icon: <Play size={14} /> },
+              { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
+              { id: 'reports', label: 'Reports', icon: <FileText size={14} /> },
+              { id: 'ai', label: 'Copilot', icon: <Sparkles size={14} /> },
               { id: 'media', label: t.business?.tabs?.media || 'Media Center', icon: <FolderOpen size={14} /> },
               { id: 'team', label: t.business?.tabs?.team || 'Team', icon: <Users size={14} /> },
               { id: 'health', label: t.business?.tabs?.health || 'Health', icon: <HeartPulse size={14} /> },
@@ -302,6 +278,10 @@ export const BusinessManager: React.FC = () => {
             </div>
           </form>
         </div>
+      )}
+
+      {showReportBuilder && (
+        <ReportBuilderWizard onClose={() => setShowReportBuilder(false)} />
       )}
     </div>
   );

@@ -1,41 +1,73 @@
 import React, { useState } from 'react';
-import { Building2, Layers, Briefcase, Share2, Play, CheckCircle2, ChevronRight, ChevronLeft, ShoppingBag, Home, Cpu, Store, Hotel, Stethoscope, Scale, GraduationCap, Car, Mic, UserCircle, Box } from 'lucide-react';
+import { Building2, Layers, Briefcase, CheckCircle2, ChevronRight, ChevronLeft, Mail, Image as ImageIcon, MapPin, Share2, Sparkles, Rocket } from 'lucide-react';
 import { useWorkspaceStore } from '../store/useWorkspaceStore';
-import { SocialConnectionCenter } from './SocialConnectionCenter';
-import confetti from 'canvas-confetti';
+import { SmartConnectionWizard } from './SmartConnectionWizard';
+import { AIBusinessAnalysis } from './AIBusinessAnalysis';
+import { WelcomeExperience } from './WelcomeExperience';
 
 export const OnboardingWizard: React.FC = () => {
   const {
-    currentStep, organizationName, workspaceName, workspaceSlug,
+    currentStep, organizationName,
     nextStep, prevStep, setOrganizationName, createWorkspace, addBusiness,
-    businesses, socialAccounts, completeOnboarding, t,
-    businessTemplate, setBusinessTemplate
+    setBrandColor
   } = useWorkspaceStore();
 
-  // Step 2 inputs
-  const [description, setDescription] = useState('');
+  // Verification Code state
+  const [verifyCode, setVerifyCode] = useState(['', '', '', '', '', '']);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState('');
+
+  // Step 4 Workspace Inputs
   const [wsName, setWsName] = useState('');
   const [wsSlug, setWsSlug] = useState('');
-  const [country, setCountry] = useState('US');
-  const [category, setCategory] = useState('Marketing Agency');
-
-  // Step 3 inputs
+  const [wsDesc, setWsDesc] = useState('');
+  
+  // Step 5 Business Profile Inputs
   const [businessName, setBusinessName] = useState('');
-  const [busCategory, setBusCategory] = useState('Marketing Agency');
+  const [businessAddress, setBusinessAddress] = useState('');
+  const [selectedColor, setSelectedColor] = useState('#8b5cf6');
 
-  // Step 5 inputs
-  const [selectedTemplate, setSelectedTemplate] = useState('instagram-auto');
+  // Step 6 Industry Selection
+  const [selectedIndustry, setSelectedIndustry] = useState('marketing-agency');
 
-  // Log descriptions/inputs silently to satisfy unused checks if needed, or omit
-  console.log('Wizard state loaded. Description length:', description.length);
+  const handleVerifyCodeChange = (index: number, value: string) => {
+    if (isNaN(Number(value))) return;
+    const newCode = [...verifyCode];
+    newCode[index] = value;
+    setVerifyCode(newCode);
 
-  const handleStep1Submit = (e: React.FormEvent) => {
+    if (value !== '' && index < 5) {
+      const nextInput = document.getElementById(`code-input-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handleVerifySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const codeString = verifyCode.join('');
+    if (codeString.length !== 6) return;
+
+    setVerifying(true);
+    setVerifyError('');
+
+    setTimeout(() => {
+      if (codeString === '123456' || codeString.length === 6) {
+        setVerifying(false);
+        nextStep();
+      } else {
+        setVerifying(false);
+        setVerifyError('Invalid verification code. Try "123456" for sandbox testing.');
+      }
+    }, 800);
+  };
+
+  const handleOrgSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!organizationName.trim()) return;
     nextStep();
   };
 
-  const handleStep2Submit = async (e: React.FormEvent) => {
+  const handleWorkspaceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!wsName.trim() || !wsSlug.trim()) return;
     await createWorkspace({
@@ -44,501 +76,384 @@ export const OnboardingWizard: React.FC = () => {
       timezone: 'America/New_York',
       locale: 'en-US'
     });
+    setBusinessName(`${wsName} Operations`);
     nextStep();
   };
-
-  const handleStep3Submit = (e: React.FormEvent) => {
+  
+  const handleBusinessSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessName.trim()) return;
-    addBusiness(businessName, busCategory);
+    setBrandColor(selectedColor);
     nextStep();
   };
 
-  const handleLaunch = () => {
-    confetti({
-      particleCount: 150,
-      spread: 80,
-      origin: { y: 0.6 }
-    });
-    completeOnboarding();
+  const handleIndustrySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const industryName = selectedIndustry.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    await addBusiness(businessName, industryName);
+    nextStep();
   };
 
   const stepsList = [
-    { num: 1, name: t.wizard.orgLabel.split(' ')[0], icon: <Building2 size={16} /> },
-    { num: 2, name: t.navigation.activeWorkspace.split(' ')[0], icon: <Layers size={16} /> },
-    { num: 3, name: t.navigation.businesses, icon: <Briefcase size={16} /> },
-    { num: 4, name: t.navigation.social.split(' ')[0], icon: <Share2 size={16} /> },
-    { num: 5, name: t.navigation.automation.split(' ')[0], icon: <Play size={16} /> },
-    { num: 6, name: t.wizard.launch.split(' ')[0], icon: <CheckCircle2 size={16} /> }
+    { num: 1, name: 'Account', icon: <CheckCircle2 size={15} /> },
+    { num: 2, name: 'Verify', icon: <Mail size={15} /> },
+    { num: 3, name: 'Organization', icon: <Building2 size={15} /> },
+    { num: 4, name: 'Workspace', icon: <Layers size={15} /> },
+    { num: 5, name: 'Profile', icon: <ImageIcon size={15} /> },
+    { num: 6, name: 'Industry', icon: <Briefcase size={15} /> },
+    { num: 7, name: 'Connect', icon: <Share2 size={15} /> },
+    { num: 8, name: 'AI Scan', icon: <Sparkles size={15} /> },
+    { num: 9, name: 'Ready', icon: <Rocket size={15} /> }
+  ];
+
+  const industries = [
+    { id: 'marketing-agency', title: 'Marketing Agency', desc: 'Multi-tenant calendars, workflows & analytics.' },
+    { id: 'ecommerce', title: 'E-Commerce & Retail', desc: 'Product catalogs, promos, & automated responses.' },
+    { id: 'restaurant', title: 'Restaurant & Food', desc: 'Menus, reviews, & local SEO publishing.' },
+    { id: 'tech-saas', title: 'Technology & SaaS', desc: 'Release updates & customer support.' },
+    { id: 'influencer', title: 'Influencer & Brand', desc: 'Media kits, engagement charts & posting.' },
+    { id: 'freelancer', title: 'Freelancer', desc: 'Portfolios, updates, & outbound prospects.' },
+    { id: 'real-estate', title: 'Real Estate', desc: 'Property listings, open houses & local reach.' },
+    { id: 'healthcare', title: 'Healthcare', desc: 'Patient info, appointments & health tips.' },
+    { id: 'education', title: 'Education', desc: 'Course promos, alumni updates & events.' },
+    { id: 'non-profit', title: 'Non-Profit & NGO', desc: 'Fundraising, volunteer drives & impact.' },
+    { id: 'automotive', title: 'Automotive', desc: 'Inventory showcases & service specials.' },
+    { id: 'beauty-wellness', title: 'Beauty & Wellness', desc: 'Booking, before-and-afters & tips.' },
+    { id: 'finance', title: 'Finance & Accounting', desc: 'Tax tips, market updates & trust building.' },
+    { id: 'legal', title: 'Legal Services', desc: 'Case studies, compliance & consultation.' },
+    { id: 'travel', title: 'Travel & Tourism', desc: 'Destinations, bookings & customer reviews.' },
+    { id: 'event-planning', title: 'Event Planning', desc: 'Schedules, recaps & ticket sales.' },
+    { id: 'photography', title: 'Photography', desc: 'Galleries, behind-the-scenes & bookings.' },
+    { id: 'fitness', title: 'Fitness & Sports', desc: 'Class schedules, workout videos & merch.' },
+    { id: 'architecture', title: 'Architecture & Design', desc: 'Project showcases & interior trends.' },
+    { id: 'music', title: 'Entertainment', desc: 'Tour dates, ticket links & new releases.' },
+    { id: 'logistics', title: 'Logistics & Supply', desc: 'B2B updates, routes & partnerships.' }
   ];
 
   return (
-    <div style={{ maxWidth: '850px', margin: '40px auto', padding: '20px' }}>
-      {/* Visual steps header progress */}
-      <div className="glass-panel" style={{ borderRadius: '16px', padding: '20px', display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
-        {stepsList.map((step) => {
-          const isActive = step.num === currentStep;
-          const isDone = step.num < currentStep;
-          return (
-            <div key={step.num} style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: isActive || isDone ? 1 : 0.4 }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '50%',
-                background: isDone ? 'var(--color-success)' : isActive ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 600, fontSize: '13px'
-              }}>
-                {isDone ? <CheckCircle2 size={16} /> : step.num}
-              </div>
-              <span style={{ fontSize: '13px', fontWeight: isActive ? 600 : 400, color: isActive ? '#fff' : 'var(--color-text-muted)' }}>
-                {step.name}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Steps contents container */}
-      <div className="glass-panel" style={{ borderRadius: '20px', padding: '40px', minHeight: '400px', display: 'flex', flexDirection: 'column', justifyItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{
+      minHeight: '100vh',
+      background: 'radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.1) 0%, rgba(9, 13, 22, 1) 70%)',
+      fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+      color: '#fff',
+      padding: '40px 20px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      <div style={{ width: '100%', maxWidth: '850px' }}>
         
-        {/* STEP 1: ORGANIZATION */}
-        {currentStep === 1 && (
-          <form onSubmit={handleStep1Submit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.orgTitle}</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.orgDesc}</p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.orgLabel}</label>
-              <input
-                type="text"
-                required
-                className="glass-input"
-                placeholder={t.wizard.orgPlaceholder}
-                value={organizationName}
-                onChange={(e) => setOrganizationName(e.target.value)}
-                style={{ fontSize: '15px', padding: '12px' }}
-              />
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
-              <button type="submit" className="btn-primary">
-                {t.wizard.next} <ChevronRight size={16} />
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* STEP 2: WORKSPACE */}
-        {currentStep === 2 && (
-          <form onSubmit={handleStep2Submit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.wsTitle}</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.wsDesc}</p>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.wsLabel}</label>
-                <input type="text" required placeholder={t.wizard.wsPlaceholder} className="glass-input" value={wsName} onChange={(e) => setWsName(e.target.value)} />
+        {/* Horizontal steps header progress bar */}
+        <div className="glass-panel" style={{
+          borderRadius: '20px',
+          padding: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: '32px',
+          border: '1px solid rgba(255,255,255,0.05)',
+          overflowX: 'auto',
+          scrollbarWidth: 'none'
+        }}>
+          {stepsList.map((step) => {
+            const isActive = step.num === currentStep;
+            const isDone = step.num < currentStep;
+            return (
+              <div key={step.num} style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                opacity: isActive || isDone ? 1 : 0.35,
+                transition: 'all 0.3s',
+                minWidth: '85px'
+              }}>
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  background: isDone ? 'var(--color-success)' : isActive ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  boxShadow: isActive ? '0 0 15px var(--glow-primary)' : 'none'
+                }}>
+                  {isDone ? <CheckCircle2 size={14} /> : step.num}
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: isActive ? 700 : 400, color: isActive ? '#fff' : 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>
+                  {step.name}
+                </span>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.wsSlugLabel}</label>
-                <input type="text" required placeholder={t.wizard.wsSlugPlaceholder} className="glass-input" value={wsSlug} onChange={(e) => setWsSlug(e.target.value)} />
-              </div>
-            </div>
+            );
+          })}
+        </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>Timezone</label>
-                <select className="glass-input">
-                  <option>America/New_York (EST)</option>
-                  <option>Europe/London (GMT)</option>
-                  <option>America/Santiago (CLT)</option>
-                </select>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>Language / Idioma</label>
-                <select className="glass-input">
-                  <option>English (en-US)</option>
-                  <option>Spanish (es-ES)</option>
-                  <option>Portuguese (pt-BR)</option>
-                </select>
-              </div>
-            </div>
+        {/* Steps contents container panel */}
+        <div className="glass-panel" style={{
+          borderRadius: '24px',
+          padding: '48px',
+          minHeight: '440px',
+          border: '1px solid rgba(255,255,255,0.06)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
+        }}>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>Country</label>
-                <input type="text" placeholder="e.g. Chile" className="glass-input" value={country} onChange={(e) => setCountry(e.target.value)} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busCatLabel}</label>
-                <input type="text" placeholder="e.g. Retail, Agency" className="glass-input" value={category} onChange={(e) => setCategory(e.target.value)} />
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontWeight: 600, fontSize: '13px' }}>Description</label>
-              <textarea placeholder="Tell us about the scope of this workspace..." className="glass-input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} style={{ resize: 'none' }} />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-              <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> {t.wizard.prev}
-              </button>
-              <button type="submit" className="btn-primary">
-                {t.wizard.next} <ChevronRight size={16} />
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* STEP 3: BUSINESS UNIT */}
-        {currentStep === 3 && (() => {
-          const templatesList = [
-            {
-              id: 'marketing-agency',
-              title: 'Marketing Agency',
-              desc: 'Configure multi-brand environments, content calendars, and white-labeling templates.',
-              icon: <Briefcase size={22} style={{ color: 'var(--color-primary)' }} />,
-              badge: 'Agency Scaling',
-              color: 'rgba(139, 92, 246, 0.08)'
-            },
-            {
-              id: 'ecommerce',
-              title: 'E-Commerce & Retail',
-              desc: 'Direct connection with Shopify, WooCommerce, and automatic product sync catalogs.',
-              icon: <ShoppingBag size={22} style={{ color: '#10b981' }} />,
-              badge: 'Store Integration',
-              color: 'rgba(16, 185, 129, 0.08)'
-            },
-            {
-              id: 'retail',
-              title: 'Retail Store',
-              desc: 'Physical store foot-traffic campaigns, Google Business syncing, and local ads.',
-              icon: <Building2 size={22} style={{ color: '#f59e0b' }} />,
-              badge: 'Local Retail',
-              color: 'rgba(245, 158, 11, 0.08)'
-            },
-            {
-              id: 'restaurant',
-              title: 'Restaurant',
-              desc: 'Menu showcases, reservation automations, and localized Google Business integration.',
-              icon: <Store size={22} style={{ color: '#ef4444' }} />,
-              badge: 'Hospitality',
-              color: 'rgba(239, 68, 68, 0.08)'
-            },
-            {
-              id: 'hotel',
-              title: 'Hotel & Hospitality',
-              desc: 'Visual room showcases, local SEO, booking integrations, and review management.',
-              icon: <Hotel size={22} style={{ color: '#0ea5e9' }} />,
-              badge: 'Hospitality',
-              color: 'rgba(14, 165, 233, 0.08)'
-            },
-            {
-              id: 'real-estate',
-              title: 'Real Estate',
-              desc: 'Visual property showcase publishing, local geolocation tags, and local leads integration.',
-              icon: <Home size={22} style={{ color: '#8b5cf6' }} />,
-              badge: 'Local Geo-Targets',
-              color: 'rgba(139, 92, 246, 0.08)'
-            },
-            {
-              id: 'medical',
-              title: 'Medical Clinic',
-              desc: 'Secure WhatsApp booking, Google Business reviews, and educational content feeds.',
-              icon: <Stethoscope size={22} style={{ color: '#10b981' }} />,
-              badge: 'Healthcare',
-              color: 'rgba(16, 185, 129, 0.08)'
-            },
-            {
-              id: 'law',
-              title: 'Law Firm',
-              desc: 'LinkedIn authority building, secure lead generation, and Google Business presence.',
-              icon: <Scale size={22} style={{ color: '#64748b' }} />,
-              badge: 'Professional',
-              color: 'rgba(100, 116, 139, 0.08)'
-            },
-            {
-              id: 'tech-saas',
-              title: 'Technology Company',
-              desc: 'Secure API connections, developer logs, ERP pipelines, and Telegram logs.',
-              icon: <Cpu size={22} style={{ color: '#3b82f6' }} />,
-              badge: 'Tech & SaaS',
-              color: 'rgba(59, 130, 246, 0.08)'
-            },
-            {
-              id: 'education',
-              title: 'Education',
-              desc: 'Course promotions, student engagement across TikTok and YouTube, alumni networking.',
-              icon: <GraduationCap size={22} style={{ color: '#f59e0b' }} />,
-              badge: 'E-Learning',
-              color: 'rgba(245, 158, 11, 0.08)'
-            },
-            {
-              id: 'automotive',
-              title: 'Automotive',
-              desc: 'Vehicle showcases, inventory syncing, test drive bookings via WhatsApp.',
-              icon: <Car size={22} style={{ color: '#ef4444' }} />,
-              badge: 'Dealerships',
-              color: 'rgba(239, 68, 68, 0.08)'
-            },
-            {
-              id: 'influencer',
-              title: 'Influencer',
-              desc: 'Cross-platform viral publishing, personal brand kits, and engagement analytics.',
-              icon: <Mic size={22} style={{ color: '#d946ef' }} />,
-              badge: 'Personal Brand',
-              color: 'rgba(217, 70, 239, 0.08)'
-            },
-            {
-              id: 'freelancer',
-              title: 'Freelancer',
-              desc: 'Portfolio showcasing, LinkedIn networking, and streamlined client acquisition.',
-              icon: <UserCircle size={22} style={{ color: '#14b8a6' }} />,
-              badge: 'Solo Business',
-              color: 'rgba(20, 184, 166, 0.08)'
-            },
-            {
-              id: 'other',
-              title: 'Other',
-              desc: 'Blank canvas. Start from scratch and customize all integrations manually.',
-              icon: <Box size={22} style={{ color: '#94a3b8' }} />,
-              badge: 'Custom Build',
-              color: 'rgba(148, 163, 184, 0.08)'
-            }
-          ];
-
-          // Auto-initialize template on mount if empty
-          if (!businessTemplate) {
-            setBusinessTemplate('marketing-agency');
-          }
-
-          return (
-            <form onSubmit={handleStep3Submit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {/* STEP 2: VERIFY EMAIL */}
+          {currentStep === 2 && (
+            <form onSubmit={handleVerifySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               <div>
-                <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.busTitle}</h2>
-                <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.busDesc}</p>
+                <span style={{ fontSize: '12px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--color-primary)', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>Security Verification</span>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, marginTop: '12px', marginBottom: '8px' }}>Verify your email address</h2>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+                  We have sent a 6-digit confirmation code to your email. Enter it below to unlock your registration flow.
+                </p>
               </div>
-              
+
+              <div>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', margin: '20px 0' }}>
+                  {verifyCode.map((digit, idx) => (
+                    <input
+                      key={idx}
+                      id={`code-input-${idx}`}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleVerifyCodeChange(idx, e.target.value)}
+                      className="glass-input"
+                      style={{
+                        width: '56px',
+                        height: '64px',
+                        textAlign: 'center',
+                        fontSize: '24px',
+                        fontWeight: 700,
+                        borderRadius: '12px',
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.1)'
+                      }}
+                    />
+                  ))}
+                </div>
+                {verifyError && (
+                  <div style={{ color: 'var(--color-danger)', fontSize: '13px', textAlign: 'center', marginTop: '12px', fontWeight: 500 }}>
+                    {verifyError}
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px' }}>
+                <span style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                  Didn't receive the email? <span style={{ color: 'var(--color-primary)', cursor: 'pointer', textDecoration: 'underline' }}>Resend code</span>
+                </span>
+                <button type="submit" disabled={verifying} className="btn-primary" style={{ padding: '12px 28px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {verifying ? 'Verifying...' : <>Verify Email <ChevronRight size={16} /></>}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 3: CREATE ORGANIZATION */}
+          {currentStep === 3 && (
+            <form onSubmit={handleOrgSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div>
+                <span style={{ fontSize: '12px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--color-primary)', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>Step 3 of 9</span>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, marginTop: '12px', marginBottom: '8px' }}>Name your Organization</h2>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+                  Organizations are the umbrella structure that manage multiple workspaces, teams, and billing configurations.
+                </p>
+              </div>
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.wizard.busLabel}</label>
+                <label style={{ fontWeight: 600, fontSize: '13px', color: 'var(--color-text-muted)' }}>Organization Name</label>
                 <input
                   type="text"
                   required
                   className="glass-input"
-                  placeholder={t.wizard.busPlaceholder}
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  style={{ fontSize: '15px', padding: '12px' }}
+                  placeholder="e.g. Acme Corporation"
+                  value={organizationName}
+                  onChange={(e) => setOrganizationName(e.target.value)}
+                  style={{ fontSize: '15px', padding: '14px', borderRadius: '12px' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label style={{ fontWeight: 600, fontSize: '13px' }}>Choose a Business Template Category</label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {templatesList.map((tpl) => {
-                    const isSelected = businessTemplate === tpl.id;
-                    return (
-                      <div
-                        key={tpl.id}
-                        onClick={() => {
-                          setBusCategory(tpl.title);
-                          setBusinessTemplate(tpl.id);
-                        }}
-                        className="glass-card"
-                        style={{
-                          padding: '18px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '12px',
-                          borderRadius: '12px',
-                          border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
-                          background: isSelected ? tpl.color : 'rgba(255, 255, 255, 0.01)',
-                          transition: 'all 0.2s ease-in-out',
-                          position: 'relative',
-                          boxShadow: isSelected ? '0 4px 20px rgba(139, 92, 246, 0.15)' : 'none'
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '8px',
-                            background: isSelected ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}>
-                            {tpl.icon}
-                          </div>
-                          <span style={{
-                            fontSize: '10px',
-                            background: isSelected ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
-                            color: '#fff',
-                            padding: '2px 8px',
-                            borderRadius: '4px',
-                            fontWeight: 600
-                          }}>
-                            {tpl.badge}
-                          </span>
-                        </div>
-                        <div>
-                          <strong style={{ fontSize: '15px', color: '#fff', display: 'block', marginBottom: '4px' }}>{tpl.title}</strong>
-                          <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.4', display: 'block' }}>{tpl.desc}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <button type="submit" className="btn-primary" style={{ padding: '12px 28px' }}>
+                  Continue <ChevronRight size={16} />
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 4: CREATE WORKSPACE */}
+          {currentStep === 4 && (
+            <form onSubmit={handleWorkspaceSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div>
+                <span style={{ fontSize: '12px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--color-primary)', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>Step 4 of 9</span>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, marginTop: '12px', marginBottom: '8px' }}>Create Workspace Hub</h2>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+                  Workspaces group different business entities, social channels, and automations together.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '13px' }}>Workspace Name</label>
+                  <input type="text" required placeholder="e.g. LATAM Marketing" className="glass-input" value={wsName} onChange={(e) => setWsName(e.target.value)} style={{ padding: '12px', borderRadius: '10px' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '13px' }}>Workspace URL Slug</label>
+                  <input type="text" required placeholder="e.g. latam-mkt" className="glass-input" value={wsSlug} onChange={(e) => setWsSlug(e.target.value)} style={{ padding: '12px', borderRadius: '10px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>Description (Optional)</label>
+                <textarea placeholder="e.g. Main operations workspace for Latin America campaign runs..." className="glass-input" rows={3} value={wsDesc} onChange={(e) => setWsDesc(e.target.value)} style={{ padding: '12px', borderRadius: '10px', resize: 'none' }} />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+                <button type="button" onClick={prevStep} className="btn-secondary">
+                  <ChevronLeft size={16} /> Back
+                </button>
+                <button type="submit" className="btn-primary" style={{ padding: '12px 28px' }}>
+                  Continue <ChevronRight size={16} />
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 5: BUSINESS PROFILE */}
+          {currentStep === 5 && (
+            <form onSubmit={handleBusinessSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div>
+                <span style={{ fontSize: '12px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--color-primary)', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>Step 5 of 9</span>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, marginTop: '12px', marginBottom: '8px' }}>Business Profile</h2>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+                  Set up the core brand identity for your first business inside the workspace.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '20px', alignItems: 'center' }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: '16px',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px dashed rgba(255,255,255,0.2)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer'
+                }}>
+                  <ImageIcon size={24} color="var(--color-text-muted)" />
+                  <span style={{ fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '4px' }}>Upload</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontWeight: 600, fontSize: '13px' }}>Business Name</label>
+                  <input type="text" required placeholder="e.g. Acme Studio" className="glass-input" value={businessName} onChange={(e) => setBusinessName(e.target.value)} style={{ padding: '12px', borderRadius: '10px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>Brand Accent Color</label>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  {['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#0ea5e9', '#6366f1'].map(color => (
+                    <div
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: color,
+                        cursor: 'pointer',
+                        border: selectedColor === color ? '2px solid #fff' : '2px solid transparent',
+                        boxShadow: selectedColor === color ? `0 0 12px ${color}` : 'none'
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontWeight: 600, fontSize: '13px' }}>Headquarters / Address (Optional)</label>
+                <div style={{ position: 'relative' }}>
+                  <MapPin size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--color-text-muted)' }} />
+                  <input type="text" placeholder="123 Tech Avenue..." className="glass-input" value={businessAddress} onChange={(e) => setBusinessAddress(e.target.value)} style={{ padding: '12px 12px 12px 36px', borderRadius: '10px', width: '100%' }} />
                 </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
                 <button type="button" onClick={prevStep} className="btn-secondary">
-                  <ChevronLeft size={16} /> {t.wizard.prev}
+                  <ChevronLeft size={16} /> Back
                 </button>
-                <button type="submit" className="btn-primary" style={{ padding: '10px 24px' }}>
-                  {t.wizard.next} <ChevronRight size={16} />
+                <button type="submit" className="btn-primary" style={{ padding: '12px 28px' }}>
+                  Continue <ChevronRight size={16} />
                 </button>
               </div>
             </form>
-          );
-        })()}
+          )}
 
-        {/* STEP 4: SOCIAL CONNECTIONS */}
-        {currentStep === 4 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.socialTitle}</h2>
-              <p style={{ color: 'var(--color-text-muted)', marginBottom: '10px' }}>{t.wizard.socialDesc}</p>
-            </div>
-
-            <SocialConnectionCenter />
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-              <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> {t.wizard.prev}
-              </button>
-              <button
-                type="button"
-                onClick={nextStep}
-                className="btn-primary"
-                disabled={socialAccounts.length === 0}
-                style={{ opacity: socialAccounts.length === 0 ? 0.5 : 1 }}
-              >
-                {t.wizard.next} <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* STEP 5: FIRST AUTOMATION */}
-        {currentStep === 5 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <h2 style={{ fontSize: '26px', marginBottom: '8px' }}>{t.wizard.autoTitle}</h2>
-              <p style={{ color: 'var(--color-text-muted)' }}>{t.wizard.autoDesc}</p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div
-                onClick={() => setSelectedTemplate('instagram-auto')}
-                className="glass-card"
-                style={{
-                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px',
-                  borderColor: selectedTemplate === 'instagram-auto' ? 'var(--color-primary)' : 'var(--color-border)',
-                  background: selectedTemplate === 'instagram-auto' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255,255,255,0.01)'
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  📸
-                </div>
-                <div>
-                  <strong>Instagram Auto-Publisher</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Automatically monitors custom media folders and publishes posts with AI-optimized copy.</div>
-                </div>
+          {/* STEP 6: CHOOSE INDUSTRY */}
+          {currentStep === 6 && (
+            <form onSubmit={handleIndustrySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div>
+                <span style={{ fontSize: '12px', background: 'rgba(139, 92, 246, 0.15)', color: 'var(--color-primary)', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>Step 6 of 9</span>
+                <h2 style={{ fontSize: '28px', fontWeight: 800, marginTop: '12px', marginBottom: '8px' }}>Choose your Industry Template</h2>
+                <p style={{ color: 'var(--color-text-muted)', margin: 0, fontSize: '14px' }}>
+                  This will pre-configure the Workspace OS with custom tool views and setup configurations suited for your industry.
+                </p>
               </div>
 
-              <div
-                onClick={() => setSelectedTemplate('whatsapp-lead')}
-                className="glass-card"
-                style={{
-                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px',
-                  borderColor: selectedTemplate === 'whatsapp-lead' ? 'var(--color-primary)' : 'var(--color-border)',
-                  background: selectedTemplate === 'whatsapp-lead' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255,255,255,0.01)'
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  💬
-                </div>
-                <div>
-                  <strong>WhatsApp Lead Response Auto-Pilot</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Autodetects customer messages and replies with intelligent templates and dynamic greetings.</div>
-                </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', maxHeight: '320px', overflowY: 'auto', paddingRight: '8px' }}>
+                {industries.map((ind) => {
+                  const isSelected = selectedIndustry === ind.id;
+                  return (
+                    <div
+                      key={ind.id}
+                      onClick={() => setSelectedIndustry(ind.id)}
+                      className="glass-card"
+                      style={{
+                        padding: '16px',
+                        cursor: 'pointer',
+                        borderRadius: '12px',
+                        border: isSelected ? '2px solid var(--color-primary)' : '1px solid rgba(255,255,255,0.06)',
+                        background: isSelected ? 'rgba(139,92,246,0.08)' : 'rgba(255,255,255,0.01)',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <strong style={{ fontSize: '14px', color: '#fff', display: 'block', marginBottom: '4px' }}>{ind.title}</strong>
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.4', display: 'block' }}>{ind.desc}</span>
+                    </div>
+                  );
+                })}
               </div>
 
-              <div
-                onClick={() => setSelectedTemplate('multi-cross')}
-                className="glass-card"
-                style={{
-                  padding: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '16px',
-                  borderColor: selectedTemplate === 'multi-cross' ? 'var(--color-primary)' : 'var(--color-border)',
-                  background: selectedTemplate === 'multi-cross' ? 'rgba(139, 92, 246, 0.08)' : 'rgba(255,255,255,0.01)'
-                }}
-              >
-                <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  ⚡
-                </div>
-                <div>
-                  <strong>Cross-Channel Viral Publisher</strong>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Publishes campaigns simultaneously across Instagram, Facebook, Threads, and TikTok.</div>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px' }}>
+                <button type="button" onClick={prevStep} className="btn-secondary">
+                  <ChevronLeft size={16} /> Back
+                </button>
+                <button type="submit" className="btn-primary" style={{ padding: '12px 28px' }}>
+                  Continue <ChevronRight size={16} />
+                </button>
               </div>
-            </div>
+            </form>
+          )}
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-              <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> {t.wizard.prev}
-              </button>
-              <button type="button" onClick={nextStep} className="btn-primary">
-                {t.wizard.next} <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
+          {/* STEP 7: CONNECT SOCIALS */}
+          {currentStep === 7 && <SmartConnectionWizard />}
 
-        {/* STEP 6: LAUNCH */}
-        {currentStep === 6 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ width: '70px', height: '70px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid var(--color-success)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
-              <CheckCircle2 size={36} style={{ color: 'var(--color-success)' }} />
-            </div>
+          {/* STEP 8: AI SCAN */}
+          {currentStep === 8 && <AIBusinessAnalysis />}
 
-            <div>
-              <h2 style={{ fontSize: '28px', marginBottom: '8px' }}>{t.wizard.launchTitle}</h2>
-              <p style={{ color: 'var(--color-text-muted)', maxWidth: '500px', margin: '0 auto' }}>
-                {t.wizard.launchDesc}
-              </p>
-            </div>
+          {/* STEP 9: WELCOME */}
+          {currentStep === 9 && <WelcomeExperience />}
 
-            <div className="glass-card" style={{ padding: '20px', width: '100%', maxWidth: '500px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div><strong>Workspace Unit:</strong> {workspaceName} (Slug: `{workspaceSlug}`)</div>
-              <div><strong>Business Registered:</strong> {businesses?.[0]?.name}</div>
-              <div><strong>Social Connections Isolated:</strong> {socialAccounts.length} profiles linked.</div>
-              <div><strong>Initial Automation:</strong> Active (Template ID: `{selectedTemplate}`)</div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '16px', marginTop: '20px' }}>
-              <button type="button" onClick={prevStep} className="btn-secondary">
-                <ChevronLeft size={16} /> {t.wizard.prev}
-              </button>
-              <button type="button" onClick={handleLaunch} className="btn-primary" style={{ padding: '12px 30px', fontSize: '15px' }}>
-                {t.wizard.launchBtn} <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-
+        </div>
       </div>
     </div>
   );

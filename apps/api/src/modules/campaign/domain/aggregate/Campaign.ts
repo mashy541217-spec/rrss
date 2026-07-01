@@ -26,6 +26,7 @@ import { CampaignPriority as CampaignPriorityEnum } from '../enums/CampaignPrior
 import { PublicationStrategy } from '../enums/PublicationStrategy';
 import { CampaignObjective as CampaignObjectiveEnum } from '../enums/CampaignObjective';
 import { ChannelType } from '../enums/ChannelType';
+import { ExecutionStrategy } from '../enums/ExecutionStrategy';
 
 import {
   CampaignCreated,
@@ -53,6 +54,8 @@ export interface CampaignProps {
   priority: CampaignPriority;
   objective: CampaignObjective;
   strategy: CampaignStrategy;
+  executionStrategy?: ExecutionStrategy;
+  publicationGroupId?: string;
   tags: CampaignTag[];
   budget: Budget;
   schedule?: Schedule;
@@ -82,6 +85,8 @@ export class Campaign extends AggregateRoot<CampaignProps, CampaignId> {
   public get priority(): CampaignPriority { return this.props.priority; }
   public get objective(): CampaignObjective { return this.props.objective; }
   public get strategy(): CampaignStrategy { return this.props.strategy; }
+  public get executionStrategy(): ExecutionStrategy | undefined { return this.props.executionStrategy; }
+  public get publicationGroupId(): string | undefined { return this.props.publicationGroupId; }
   public get tags(): CampaignTag[] { return [...this.props.tags]; }
   public get budget(): Budget { return this.props.budget; }
   public get schedule(): Schedule | undefined { return this.props.schedule; }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useWorkspaceStore } from '../store/useWorkspaceStore';
 import { ShieldCheck, ExternalLink } from 'lucide-react';
+import { useLimitEngine } from '../lib/LimitEngine';
 
 interface ProviderCard {
   id: string;
@@ -10,13 +11,36 @@ interface ProviderCard {
 }
 
 export const SocialConnectionCenter: React.FC = () => {
-  const { socialAccounts, connectSocialAccount, activeBusinessId, activeProvisioning, clearActiveProvisioning, businessTemplate } = useWorkspaceStore();
+  const { activeBusinessId, activeProvisioning, clearActiveProvisioning, businessTemplate } = useWorkspaceStore();
   
   const [selectedProvider, setSelectedProvider] = useState<ProviderCard | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   
   // Wizard State
   const [wizardStep, setWizardStep] = useState<'idle' | 'auth' | 'permissions' | 'validating' | 'success'>('idle');
+  const [realAccounts, setRealAccounts] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    if (activeBusinessId) {
+      fetch(`http://localhost:3000/api/social/accounts?businessId=${activeBusinessId}`)
+        .then(res => res.json())
+        .then(data => setRealAccounts(data))
+        .catch(err => console.error('Failed to load accounts', err));
+    }
+  }, [activeBusinessId]);
+
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      // Refresh accounts
+      if (activeBusinessId) {
+        fetch(`http://localhost:3000/api/social/accounts?businessId=${activeBusinessId}`)
+          .then(res => res.json())
+          .then(data => setRealAccounts(data))
+          .catch(err => console.error('Failed to load accounts', err));
+      }
+    }
+  }, [activeBusinessId]);
 
   const providers: ProviderCard[] = [
     { id: 'instagram', name: 'Instagram', icon: '📸', desc: 'Auto-publish reels, feeds, stories and replies.' },
@@ -35,29 +59,32 @@ export const SocialConnectionCenter: React.FC = () => {
     { id: 'meta_ads', name: 'Meta Ads', icon: '🎯', desc: 'Manage Facebook and Instagram ad budgets and ROI.' }
   ];
 
+  const { canAddSocialAccount } = useLimitEngine();
+
   const handleCardClick = (prov: ProviderCard) => {
+    if (!canAddSocialAccount()) return;
     setSelectedProvider(prov);
     setWizardStep('idle');
     setModalOpen(true);
   };
 
-  const startWizard = () => {
+  const startWizard = async () => {
+    if (!selectedProvider || !activeBusinessId) return;
     setWizardStep('auth');
-    setTimeout(() => {
-      setWizardStep('permissions');
-      setTimeout(() => {
-        setWizardStep('validating');
-        setTimeout(async () => {
-          if (selectedProvider) {
-            await connectSocialAccount(selectedProvider.id, selectedProvider.name);
-          }
-          setWizardStep('success');
-          setTimeout(() => {
-            setModalOpen(false);
-          }, 1500);
-        }, 1500);
-      }, 1500);
-    }, 1500);
+    try {
+      const response = await fetch('http://localhost:3000/api/social/oauth/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider: selectedProvider.id, businessId: activeBusinessId })
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url; // Redirect to official OAuth provider
+      }
+    } catch (e) {
+      console.error(e);
+      setModalOpen(false);
+    }
   };
 
   const recommendationMap: Record<string, string[]> = {
@@ -78,14 +105,12 @@ export const SocialConnectionCenter: React.FC = () => {
 
   const recommendedIds = businessTemplate ? (recommendationMap[businessTemplate] || []) : [];
   
-  // Filter accounts strictly by the active business
-  const activeConnections = socialAccounts.filter(a => a.businessId === activeBusinessId);
 
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px', maxHeight: '500px', overflowY: 'auto', padding: '8px' }}>
         {providers.map((prov) => {
-          const connection = activeConnections.find(a => a.provider.toLowerCase() === prov.id.toLowerCase());
+          const connection = realAccounts.find(a => a.platform.toLowerCase() === prov.id.toLowerCase());
           const isConnected = !!connection;
           const isRecommended = recommendedIds.includes(prov.id);
           
@@ -116,7 +141,11 @@ export const SocialConnectionCenter: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '24px' }}>{prov.icon}</span>
+                {isConnected && connection.avatar ? (
+                  <img src={connection.avatar} alt={prov.name} style={{ width: '32px', height: '32px', borderRadius: '50%', border: '2px solid rgba(16,185,129,0.3)' }} />
+                ) : (
+                  <span style={{ fontSize: '24px' }}>{prov.icon}</span>
+                )}
                 {isConnected ? (
                   <span style={{
                     fontSize: '11px', background: 'rgba(16,185,129,0.15)', color: 'var(--color-success)',
@@ -134,10 +163,49 @@ export const SocialConnectionCenter: React.FC = () => {
                   </span>
                 ) : null}
               </div>
-              <div>
-                <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '2px' }}>{prov.name}</h4>
-                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.4' }}>{prov.desc}</p>
-              </div>
+              
+              {!isConnected ? (
+                <div>
+                  <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '2px' }}>{prov.name}</h4>
+                  <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.4' }}>{prov.desc}</p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ fontSize: '15px', color: '#fff', marginBottom: '0' }}>{connection.name}</h4>
+                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{connection.handle} • {connection.followers.toLocaleString()} followers</span>
+                  </div>
+                  
+                  {connection.capabilities && connection.capabilities.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '4px' }}>
+                      {connection.capabilities.map((cap: string) => (
+                        <span key={cap} style={{ fontSize: '9px', background: 'rgba(255,255,255,0.05)', color: '#aaa', padding: '2px 6px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                          {cap.replace(/_/g, ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                      Status: {connection.syncStatus}
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetch('http://localhost:3000/api/social/synchronize', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ credentialId: connection.id })
+                        }).then(() => window.location.reload());
+                      }}
+                      style={{ background: 'transparent', border: 'none', color: 'var(--color-primary)', fontSize: '11px', cursor: 'pointer', padding: 0 }}
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}

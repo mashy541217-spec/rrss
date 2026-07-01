@@ -5,17 +5,19 @@ import { BusinessManager } from './BusinessManager';
 import { AICustomerAssistant } from './AICustomerAssistant';
 import { SocialConnectionCenter } from './SocialConnectionCenter';
 import { CommandPalette } from './CommandPalette';
-import { 
-  LayoutDashboard, Share2, Briefcase, Play, Calendar, FolderOpen, 
+import { LayoutDashboard, Share2, Briefcase, Play, Calendar, FolderOpen, 
   BarChart3, Bot, ShoppingBag, FileText, Settings, Sparkles, Bell, 
-  AlertTriangle, Languages, Sun, Moon, Search 
+  AlertTriangle, Languages, Sun, Moon, Search, Activity
 } from 'lucide-react';
+import { UpgradeDialog } from './UpgradeDialog';
+import { AccountCenter } from './AccountCenter';
+import { BetaProgramLayout } from './BetaProgramLayout';
 
 export const Layout: React.FC = () => {
   const {
     activeModule, setActiveModule, workspaceName, timezone,
-    notifications, clearNotification, language, setLanguage, theme, setTheme, brandColor, setBrandColor, t,
-    businesses, activeBusinessId, setActiveBusinessId
+    notifications, clearNotification, language, setLanguage, theme, setTheme, t,
+    businesses, activeBusinessId, setActiveBusinessId, setActiveBusinessTab
   } = useWorkspaceStore();
 
   const navigationItems = [
@@ -29,7 +31,8 @@ export const Layout: React.FC = () => {
     { id: 'assistant', name: t.navigation.assistant, icon: <Bot size={18} /> },
     { id: 'marketplace', name: t.navigation.marketplace, icon: <ShoppingBag size={18} /> },
     { id: 'reports', name: t.navigation.reports, icon: <FileText size={18} /> },
-    { id: 'settings', name: t.navigation.settings, icon: <Settings size={18} /> }
+    { id: 'beta', name: 'Beta Program', icon: <Activity size={18} /> },
+    { id: 'settings', name: 'Account Center', icon: <Settings size={18} /> }
   ];
 
   const renderModuleContent = () => {
@@ -162,98 +165,10 @@ export const Layout: React.FC = () => {
             <button className="btn-primary" style={{ marginTop: '16px' }}>Generate PDF Report</button>
           </div>
         );
+      case 'beta':
+        return <BetaProgramLayout />;
       case 'settings':
-        return (
-          <div className="glass-panel" style={{ padding: '24px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <div>
-              <h2>{t.settings.title}</h2>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: '13px', marginTop: '4px' }}>
-                White Label and environment personalization dashboard settings.
-              </p>
-            </div>
-
-            {/* Language Selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.settings.langLabel}</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button 
-                  onClick={() => setLanguage('en')}
-                  style={{
-                    padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', border: '1px solid var(--color-border)',
-                    background: language === 'en' ? 'var(--color-primary)' : 'rgba(255,255,255,0.02)',
-                    color: '#fff', fontWeight: 600
-                  }}
-                >
-                  English
-                </button>
-                <button 
-                  onClick={() => setLanguage('es')}
-                  style={{
-                    padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', border: '1px solid var(--color-border)',
-                    background: language === 'es' ? 'var(--color-primary)' : 'rgba(255,255,255,0.02)',
-                    color: '#fff', fontWeight: 600
-                  }}
-                >
-                  Español
-                </button>
-              </div>
-            </div>
-
-            {/* Theme selection */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.settings.themeLabel}</label>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button 
-                  onClick={() => setTheme('dark')}
-                  style={{
-                    padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', border: '1px solid var(--color-border)',
-                    background: theme === 'dark' ? 'var(--color-primary)' : 'rgba(255,255,255,0.02)',
-                    color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px'
-                  }}
-                >
-                  <Moon size={14} /> Dark Mode
-                </button>
-                <button 
-                  onClick={() => setTheme('light')}
-                  style={{
-                    padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', border: '1px solid var(--color-border)',
-                    background: theme === 'light' ? 'var(--color-primary)' : 'rgba(255,255,255,0.02)',
-                    color: theme === 'light' ? '#fff' : 'inherit', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px'
-                  }}
-                >
-                  <Sun size={14} /> Light Mode
-                </button>
-              </div>
-            </div>
-
-            {/* Brand primary color customizer */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontWeight: 600, fontSize: '13px' }}>{t.settings.colorLabel}</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'].map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => setBrandColor(color)}
-                    style={{
-                      width: '32px', height: '32px', borderRadius: '50%', backgroundColor: color, cursor: 'pointer',
-                      border: brandColor === color ? '3px solid #fff' : '1px solid var(--color-border)',
-                      boxShadow: brandColor === color ? '0 0 10px rgba(255,255,255,0.4)' : 'none',
-                      transition: 'all 0.15s ease'
-                    }}
-                  />
-                ))}
-                <input 
-                  type="color"
-                  value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  style={{
-                    width: '36px', height: '36px', border: 'none', background: 'transparent', cursor: 'pointer'
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        );
+        return <AccountCenter />;
       default:
         return <CustomerDashboard />;
     }
@@ -312,7 +227,29 @@ export const Layout: React.FC = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveModule(item.id as any)}
+                onClick={() => {
+                  if (item.id === 'media') {
+                    setActiveModule('businesses');
+                    setActiveBusinessTab('media');
+                  } else if (item.id === 'calendar') {
+                    setActiveModule('businesses');
+                    setActiveBusinessTab('campaigns');
+                  } else if (item.id === 'automation') {
+                    setActiveModule('businesses');
+                    setActiveBusinessTab('automation');
+                  } else if (item.id === 'analytics') {
+                    setActiveModule('businesses');
+                    setActiveBusinessTab('analytics');
+                  } else if (item.id === 'ai') {
+                    setActiveModule('businesses');
+                    setActiveBusinessTab('ai');
+                  } else if (item.id === 'reports') {
+                    setActiveModule('businesses');
+                    setActiveBusinessTab('reports');
+                  } else {
+                    setActiveModule(item.id as any);
+                  }
+                }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '12px', width: '100%', padding: '10px 14px', borderRadius: '8px',
                   background: isActive ? 'rgba(var(--color-primary), 0.12)' : 'transparent',
@@ -452,7 +389,8 @@ export const Layout: React.FC = () => {
 
       </div>
 
-      {/* Render global Command Palette */}
+      {/* Render global Command Palette and Upgrade Dialog */}
+      <UpgradeDialog />
       <CommandPalette />
     </div>
   );
